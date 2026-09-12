@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Monitoring Jaringan Baru - PDAM Surya Sembada</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        pdam: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        /* Kustomisasi scrollbar untuk tabel */
+        .table-container::-webkit-scrollbar { height: 8px; }
+        .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Animasi Toast */
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .toast-enter { animation: slideIn 0.3s ease-out forwards; }
+        .toast-exit { animation: fadeOut 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col min-h-screen">
+
+    <header class="bg-pdam-800 text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <svg class="w-8 h-8 text-pdam-100" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+                    </svg>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight">SIMOJA</h1>
+                        <p class="text-xs text-pdam-100">Sistem Monitoring Jaringan Air Baru</p>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    <span class="bg-pdam-900 px-3 py-1 rounded-full text-xs font-medium border border-pdam-700">
+                        Perumda Air Minum Surya Sembada
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-slate-700">Dashboard Statistik</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="stats-container">
+                <!-- Skeleton Loader Dashboard -->
+                <div class="bg-white rounded-xl shadow-sm p-5 border border-slate-100 flex items-center justify-between animate-pulse">
+                    <div class="h-10 bg-slate-200 rounded w-1/2"></div>
+                    <div class="h-10 w-10 bg-slate-200 rounded-full"></div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-5 border border-slate-100 flex items-center justify-between animate-pulse">
+                    <div class="h-10 bg-slate-200 rounded w-1/2"></div>
+                    <div class="h-10 w-10 bg-slate-200 rounded-full"></div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-5 border border-slate-100 flex items-center justify-between animate-pulse">
+                    <div class="h-10 bg-slate-200 rounded w-1/2"></div>
+                    <div class="h-10 w-10 bg-slate-200 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Kolom Form Entry -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden sticky top-24">
+                    <div class="bg-slate-50 border-b border-slate-200 px-6 py-4">
+                        <h3 class="font-semibold text-lg text-slate-800">Form Entry Permohonan</h3>
+                        <p class="text-sm text-slate-500 mt-1">Input data pelanggan baru.</p>
+                    </div>
+                    
+                    <form id="permohonan-form" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                        <div>
+                            <label for="nama" class="block text-sm font-medium text-slate-700 mb-1">Nama Pemohon *</label>
+                            <input type="text" id="nama" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-pdam-500 focus:border-pdam-500 outline-none transition-colors" placeholder="Nama lengkap pemohon">
+                        </div>
+                        
+                        <div>
+                            <label for="alamat" class="block text-sm font-medium text-slate-700 mb-1">Alamat Persil yang Diajukan *</label>
+                            <textarea id="alamat" rows="2" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-pdam-500 focus:border-pdam-500 outline-none transition-colors resize-none" placeholder="Alamat lengkap lokasi..."></textarea>
+                        </div>
+
+                        <!-- Bagian Pipa Dinamis -->
+                        <div class="space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Spesifikasi Pipa *</label>
+                            
+                            <div id="pipa-container" class="space-y-2">
+                                <div class="flex gap-2 items-start pipa-row">
+                                    <div class="w-1/2">
+                                        <input type="number" required min="1" class="w-full px-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-pdam-500 pipa-panjang outline-none" placeholder="Panjang (m)">
+                                    </div>
+                                    <div class="w-1/2 flex gap-2">
+                                        <select required class="w-full px-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-pdam-500 pipa-diameter bg-white outline-none">
+                                            <option value="" disabled selected>Diameter</option>
+                                            <option value="100 mm">100 mm</option>
+                                            <option value="150 mm">150 mm</option>
+                                            <option value="200 mm">200 mm</option>
+                                        </select>
+                                        <button type="button" class="btn-hapus-pipa p-2 text-rose-500 hover:bg-rose-50 rounded-lg opacity-50 cursor-not-allowed transition-colors" disabled title="Hapus Baris">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="button" id="btn-tambah-pipa" class="text-xs text-pdam-600 hover:text-pdam-700 font-medium flex items-center gap-1 mt-2 px-2 py-1 rounded hover:bg-pdam-50 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                Tambah Ukuran Pipa
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="rab" class="block text-sm font-medium text-slate-700 mb-1">Nilai RAB (Rp) *</label>
+                                <input type="text" id="rab" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-pdam-500 focus:border-pdam-500 outline-none transition-colors" placeholder="0">
+                            </div>
+                            <div>
+                                <label for="pp" class="block text-sm font-medium text-slate-700 mb-1">Nilai PP (Rp) *</label>
+                                <input type="text" id="pp" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-pdam-500 focus:border-pdam-500 outline-none transition-colors" placeholder="0">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="jenis_pekerjaan" class="block text-sm font-medium text-slate-700 mb-1">Jenis Pekerjaan *</label>
+                            <select id="jenis_pekerjaan" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-pdam-500 focus:border-pdam-500 outline-none bg-white">
+                                <option value="" disabled selected>Pilih beban...</option>
+                                <option value="Beban Pelanggan">Beban Pelanggan</option>
+                                <option value="Beban Perumda">Beban Perumda</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="berkas" class="block text-sm font-medium text-slate-700 mb-1">Upload RAB & Denah</label>
+                            <input type="file" id="berkas" accept=".pdf,.jpg,.jpeg,.png" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-pdam-50 file:text-pdam-700 hover:file:bg-pdam-100 transition-colors">
+                        </div>
+                        
+                        <div>
+                            <label for="status" class="block text-sm font-medium text-slate-700 mb-1">Status Pengerjaan *</label>
+                            <select id="status" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-pdam-500 focus:border-pdam-500 outline-none bg-white">
+                                <option value="Menunggu">Menunggu</option>
+                                <option value="Diproses">Diproses</option>
+                                <option value="Selesai">Selesai</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" id="btn-submit" class="w-full bg-pdam-600 hover:bg-pdam-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex justify-center items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                            Simpan Data
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-full flex flex-col">
+                    <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+                        <div>
+                            <h3 class="font-semibold text-lg text-slate-800">Tabel Monitoring</h3>
+                            <p class="text-sm text-slate-500 mt-1">Daftar permohonan jaringan secara real-time.</p>
+                        </div>
+                        <div id="connection-status" class="flex items-center gap-2 text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                            <span class="relative flex h-2 w-2">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                            </span>
+                            Menghubungkan Database...
+                        </div>
+                    </div>
+                    
+                    <div class="p-0 flex-grow table-container overflow-x-auto relative min-h-[400px]">
+                        <div id="table-loading" class="absolute inset-0 bg-white/80 z-10 flex flex-col items-center justify-center">
+                            <svg class="animate-spin h-8 w-8 text-pdam-600 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span class="text-sm font-medium text-slate-600">Memuat Data...</span>
+                        </div>
+                        
+                        <table class="w-full text-left border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
+                                    <th class="px-6 py-4 font-medium">Pemohon</th>
+                                    <th class="px-6 py-4 font-medium">Spesifikasi Pipa</th>
+                                    <th class="px-6 py-4 font-medium">Keuangan</th>
+                                    <th class="px-6 py-4 font-medium">Beban</th>
+                                    <th class="px-6 py-4 font-medium">Status & Berkas</th>
+                                    <th class="px-6 py-4 font-medium text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body" class="divide-y divide-slate-100 text-sm">
+                                <!-- Data Baris Tabel -->
+                            </tbody>
+                        </table>
+                        
+                        <div id="empty-state" class="hidden flex-col items-center justify-center p-12 text-slate-500">
+                            <svg class="w-16 h-16 text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p class="font-medium">Belum ada data permohonan</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Kontainer Notifikasi Toast -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Konfigurasi Lingkungan Global
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pdam-surabaya-monitoring';
+        const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+        let firebaseConfig = {};
+        
+        try {
+            firebaseConfig = JSON.parse(firebaseConfigStr);
+        } catch (e) {
+            console.error("Kesalahan parsing konfigurasi Firebase");
+        }
+
+        // Deklarasi Elemen DOM
+        const form = document.getElementById('permohonan-form');
+        const btnSubmit = document.getElementById('btn-submit');
+        const tableBody = document.getElementById('table-body');
+        const tableLoading = document.getElementById('table-loading');
+        const emptyState = document.getElementById('empty-state');
+        const statsContainer = document.getElementById('stats-container');
+        const connectionIndicator = document.getElementById('connection-status');
+        const pipaContainer = document.getElementById('pipa-container');
+        const btnTambahPipa = document.getElementById('btn-tambah-pipa');
+        
+        let db, auth;
+        let globalData = [];
+        let unsubscribe = null;
+        let editDocId = null; // Menyimpan ID dokumen yang sedang diedit
+
+        // Fungsi untuk mengembalikan form ke kondisi awal (Mode Tambah Baru)
+        function resetFormState() {
+            editDocId = null;
+            form.reset();
+            
+            // Kembalikan teks header form
+            document.querySelector('.bg-slate-50.border-b h3').innerText = 'Form Entry Permohonan';
+            document.querySelector('.bg-slate-50.border-b p').innerText = 'Input data pelanggan baru.';
+            
+            // Kembalikan tombol Submit
+            btnSubmit.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg> Simpan Data`;
+            
+            // Sembunyikan tombol Batal Edit
+            const btnBatal = document.getElementById('btn-batal-edit');
+            if (btnBatal) btnBatal.style.display = 'none';
+
+            // Reset Pipa ke 1 baris kosong awal
+            pipaContainer.innerHTML = `
+                <div class="flex gap-2 items-start pipa-row">
+                    <div class="w-1/2">
+                        <input type="number" required min="1" class="w-full px-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-pdam-500 pipa-panjang outline-none" placeholder="Panjang (m)">
+                    </div>
+                    <div class="w-1/2 flex gap-2">
+                        <select required class="w-full px-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-pdam-500 pipa-diameter bg-white outline-none">
+                            <option value="" disabled selected>Diameter</option>
+                            <option value="100 mm">100 mm</option>
+                            <option value="150 mm">150 mm</option>
+                            <option value="200 mm">200 mm</option>
+                        </select>
+                        <button type="button" class="btn-hapus-pipa p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                </div>`;
+            bindInitialHapusBtn();
+            updateHapusBttnStates();
+        }
+
+        function formatRupiah(value) {
+            let number_string = value.replace(/[^,\d]/g, '').toString();
+            let split = number_string.split(',');
+            let sisa = split[0].length % 3;
+            let rupiah = split[0].substr(0, sisa);
+            let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+            
+            if (ribuan) {
+                let separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+            return split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+        }
+
+        document.getElementById('rab').addEventListener('input', function() { this.value = formatRupiah(this.value); });
+        document.getElementById('pp').addEventListener('input', function() { this.value = formatRupiah(this.value); });
+
+        window.showToast = (message, type = 'success') => {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-emerald-500' : 'bg-rose-500';
+            const icon = type === 'success' 
+                ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
+                : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+
+            toast.className = `toast-enter flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg text-white ${bgColor} max-w-sm`;
+            toast.innerHTML = `${icon} <span class="text-sm font-medium">${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.replace('toast-enter', 'toast-exit');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
+        function escapeHtml(unsafe) {
+            if(!unsafe) return '';
+            return unsafe.toString()
+                 .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function updateHapusBttnStates() {
+            const btns = pipaContainer.querySelectorAll('.btn-hapus-pipa');
+            btns.forEach(btn => {
+                if (btns.length <= 1) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    btn.classList.remove('hover:bg-rose-50');
+                } else {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btn.classList.add('hover:bg-rose-50');
+                }
+            });
+        }
+
+        btnTambahPipa.addEventListener('click', () => {
+            const row = document.createElement('div');
+            row.className = 'flex gap-2 items-start pipa-row';
+            row.innerHTML = `
+                <div class="w-1/2">
+                    <input type="number" required min="1" class="w-full px-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-pdam-500 pipa-panjang outline-none" placeholder="Panjang (m)">
+                </div>
+                <div class="w-1/2 flex gap-2">
+                    <select required class="w-full px-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-pdam-500 pipa-diameter bg-white outline-none">
+                        <option value="" disabled selected>Diameter</option>
+                        <option value="100 mm">100 mm</option>
+                        <option value="150 mm">150 mm</option>
+                        <option value="200 mm">200 mm</option>
+                    </select>
+                    <button type="button" class="btn-hapus-pipa p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </div>
+            `;
+            pipaContainer.appendChild(row);
+            
+            row.querySelector('.btn-hapus-pipa').addEventListener('click', function() {
+                row.remove();
+                updateHapusBttnStates();
+            });
+            updateHapusBttnStates();
+        });
+
+        function bindInitialHapusBtn() {
+            const initialBtn = document.querySelector('.pipa-row .btn-hapus-pipa');
+            if(initialBtn) {
+                initialBtn.addEventListener('click', function() {
+                    if (document.querySelectorAll('.pipa-row').length > 1) {
+                        this.closest('.pipa-row').remove();
+                        updateHapusBttnStates();
+                    }
+                });
+            }
+        }
+
+        async function initApp() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Autentikasi sebelum kueri
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                
+                startRealtimeUpdates();
+                
+                connectionIndicator.className = "flex items-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200";
+                connectionIndicator.innerHTML = `<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span> Database Aktif`;
+
+            } catch (error) {
+                console.error("Gagal inisialisasi:", error);
+                showToast("Koneksi database bermasalah.", "error");
+                tableLoading.style.display = 'none';
+            }
+        }
+
+        function startRealtimeUpdates() {
+            // Path Publik Wajib Sesuai Aturan Sistem
+            const dbRef = collection(db, 'artifacts', appId, 'public', 'data', 'permohonan');
+            
+            unsubscribe = onSnapshot(dbRef, (snapshot) => {
+                globalData = [];
+                snapshot.forEach((doc) => {
+                    globalData.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sorting Manual di Memori
+                globalData.sort((a, b) => {
+                    const tA = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
+                    const tB = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0;
+                    return tB - tA;
+                });
+
+                renderDashboard();
+                renderTable();
+                tableLoading.style.display = 'none';
+            }, (error) => {
+                console.error("Error Realtime:", error);
+                showToast("Gagal mengambil data terbaru.", "error");
+            });
+        }
+
+        function renderDashboard() {
+            const total = globalData.length;
+            const bPelanggan = globalData.filter(d => d.jenisPekerjaan === 'Beban Pelanggan').length;
+            const bPerumda = globalData.filter(d => d.jenisPekerjaan === 'Beban Perumda').length;
+
+            const metric = [
+                { title: 'Total Permohonan', count: total, bg: 'bg-pdam-50 text-pdam-600', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+                { title: 'Beban Pelanggan', count: bPelanggan, bg: 'bg-amber-50 text-amber-600', icon: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z' },
+                { title: 'Beban Perumda', count: bPerumda, bg: 'bg-sky-50 text-sky-600', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' }
+            ];
+
+            statsContainer.innerHTML = metric.map(m => `
+                <div class="bg-white rounded-xl shadow-sm p-5 border border-slate-100 flex items-center justify-between transition-transform hover:-translate-y-1">
+                    <div>
+                        <p class="text-sm text-slate-500 font-medium mb-1">${m.title}</p>
+                        <p class="text-3xl font-bold text-slate-800">${m.count}</p>
+                    </div>
+                    <div class="h-12 w-12 rounded-full ${m.bg} flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${m.icon}"></path></svg>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderTable() {
+            if (globalData.length === 0) {
+                tableBody.innerHTML = '';
+                emptyState.style.display = 'flex';
+                return;
+            }
+            emptyState.style.display = 'none';
+            const idr = (num) => 'Rp' + (num || 0).toLocaleString('id-ID');
+
+            tableBody.innerHTML = globalData.map(row => {
+                let pipaStr = row.pipaData?.map(p => 
+                    `<span class="inline-block bg-slate-100 border border-slate-200 rounded px-2 py-0.5 mt-1 mr-1 text-xs whitespace-nowrap">${escapeHtml(p.panjang)}m - Dia. ${escapeHtml(p.diameter)}</span>`
+                ).join('') || '-';
+
+                let statusBadge = row.status === 'Selesai' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
+                                  row.status === 'Diproses' ? 'bg-sky-100 text-sky-800 border-sky-200' : 'bg-slate-100 text-slate-800 border-slate-200';
+                                  
+                let bebanBadge = row.jenisPekerjaan === 'Beban Pelanggan' ? 'text-amber-700 bg-amber-50 border-amber-200' : 'text-pdam-700 bg-pdam-50 border-pdam-200';
+
+                return `
+                    <tr class="hover:bg-slate-50 group">
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-slate-800">${escapeHtml(row.nama)}</div>
+                            <div class="text-xs text-slate-500 max-w-[200px] truncate" title="${escapeHtml(row.alamat)}">${escapeHtml(row.alamat)}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-normal min-w-[200px]">
+                            <div class="flex flex-wrap">${pipaStr}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-xs text-slate-500">RAB: <span class="font-medium text-slate-700">${idr(row.rab)}</span></div>
+                            <div class="text-xs text-slate-500">PP: <span class="font-medium text-slate-700">${idr(row.pp)}</span></div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 rounded text-xs border ${bebanBadge} font-medium">${escapeHtml(row.jenisPekerjaan)}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="mb-1"><span class="px-2.5 py-1 rounded-md text-xs font-medium border ${statusBadge}">${escapeHtml(row.status)}</span></div>
+                            ${row.namaBerkas && row.namaBerkas !== '-' ? `<div class="text-[11px] text-slate-500 flex items-center gap-1 mt-2"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg> ${escapeHtml(row.namaBerkas)}</div>` : ''}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex flex-col gap-1.5 items-end opacity-0 group-hover:opacity-100 transition-opacity">
+                                <select onchange="window.updateStatus('${row.id}', this.value)" class="text-xs border border-slate-300 rounded py-1 pl-2 pr-6 focus:ring-pdam-500 bg-white cursor-pointer outline-none">
+                                    <option value="" disabled selected>Ubah Status</option>
+                                    <option value="Menunggu">Menunggu</option>
+                                    <option value="Diproses">Diproses</option>
+                                    <option value="Selesai">Selesai</option>
+                                </select>
+                                <div class="flex gap-3">
+                                    <button onclick="window.editData('${row.id}')" class="text-xs text-pdam-600 hover:text-pdam-800 font-medium">Edit</button>
+                                    <button onclick="window.hapusData('${row.id}')" class="text-xs text-rose-600 hover:text-rose-800 font-medium">Hapus</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!auth.currentUser) return showToast("Sistem belum terkoneksi ke database.", "error");
+
+            const btnAsli = btnSubmit.innerHTML;
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = `Menyimpan...`;
+
+            try {
+                // Kumpulkan data pipa dinamis
+                const pipaRows = document.querySelectorAll('.pipa-row');
+                const pipaData = [];
+                pipaRows.forEach(row => {
+                    const p = row.querySelector('.pipa-panjang').value;
+                    const d = row.querySelector('.pipa-diameter').value;
+                    if(p && d) pipaData.push({ panjang: Number(p), diameter: d });
+                });
+
+                const rabStr = document.getElementById('rab').value.replace(/\./g, '');
+                const ppStr = document.getElementById('pp').value.replace(/\./g, '');
+                const berkasInput = document.getElementById('berkas');
+
+                // Penanganan Nama File jika sedang edit dan tidak ada file baru yang diunggah
+                let namaBerkasFinal = '-';
+                if (berkasInput.files.length > 0) {
+                    namaBerkasFinal = berkasInput.files[0].name;
+                } else if (editDocId) {
+                    const existingData = globalData.find(d => d.id === editDocId);
+                    if (existingData && existingData.namaBerkas) namaBerkasFinal = existingData.namaBerkas;
+                }
+
+                const payload = {
+                    nama: document.getElementById('nama').value.trim(),
+                    alamat: document.getElementById('alamat').value.trim(),
+                    pipaData: pipaData,
+                    rab: Number(rabStr) || 0,
+                    pp: Number(ppStr) || 0,
+                    jenisPekerjaan: document.getElementById('jenis_pekerjaan').value,
+                    status: document.getElementById('status').value,
+                    namaBerkas: namaBerkasFinal
+                };
+
+                if (editDocId) {
+                    // Update Mode (Edit Data)
+                    payload.updatedAt = serverTimestamp();
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'permohonan', editDocId);
+                    await updateDoc(docRef, payload);
+                    showToast("Data permohonan berhasil diperbarui!");
+                } else {
+                    // Create Mode (Tambah Data Baru)
+                    payload.timestamp = serverTimestamp();
+                    const dbRef = collection(db, 'artifacts', appId, 'public', 'data', 'permohonan');
+                    await addDoc(dbRef, payload);
+                    showToast("Data permohonan berhasil disimpan!");
+                }
+                
+                resetFormState(); // Reset form dan UI kembali seperti semula
+
+            } catch (err) {
+                console.error("Gagal simpan/update:", err);
+                showToast("Gagal memproses data.", "error");
+                btnSubmit.innerHTML = btnAsli; // Kembalikan ke text asli jika gagal
+            } finally {
+                btnSubmit.disabled = false;
+            }
+        });
+
+        // FUNGSI UNTUK MENGEDIT DATA
+        window.editData = (id) => {
+            const data = globalData.find(d => d.id === id);
+            if (!data) return;
+
+            editDocId = id;
+
+            // Masukkan data dasar ke dalam form
+            document.getElementById('nama').value = data.nama || '';
+            document.getElementById('alamat').value = data.alamat || '';
+            document.getElementById('rab').value = formatRupiah((data.rab || 0).toString());
+            document.getElementById('pp').value = formatRupiah((data.pp || 0).toString());
+            document.getElementById('jenis_pekerjaan').value = data.jenisPekerjaan || '';
+            document.getElementById('status').value = data.status || 'Menunggu';
+            
+            // Kosongkan file input, biarkan user unggah baru bila ingin ganti
+            document.getElementById('berkas').value = ''; 
+
+            // Render ulang pipaData dari database ke field yang dinamis
+            pipaContainer.innerHTML = '';
+            if (data.pipaData && data.pipaData.length > 0) {
+                data.pipaData.forEach(p => {
+                    const row = document.createElement('div');
+                    row.className = 'flex gap-2 items-start pipa-row';
+                    row.innerHTML = `
+                        <div class="w-1/2">
+                            <input type="number" required min="1" value="${p.panjang}" class="w-full px-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-pdam-500 pipa-panjang outline-none" placeholder="Panjang (m)">
+                        </div>
+                        <div class="w-1/2 flex gap-2">
+                            <select required class="w-full px-4 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-pdam-500 pipa-diameter bg-white outline-none">
+                                <option value="" disabled>Diameter</option>
+                                <option value="100 mm" ${p.diameter === '100 mm' ? 'selected' : ''}>100 mm</option>
+                                <option value="150 mm" ${p.diameter === '150 mm' ? 'selected' : ''}>150 mm</option>
+                                <option value="200 mm" ${p.diameter === '200 mm' ? 'selected' : ''}>200 mm</option>
+                            </select>
+                            <button type="button" class="btn-hapus-pipa p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    `;
+                    pipaContainer.appendChild(row);
+                    row.querySelector('.btn-hapus-pipa').addEventListener('click', function() {
+                        row.remove();
+                        updateHapusBttnStates();
+                    });
+                });
+            }
+            updateHapusBttnStates();
+
+            // Ubah Header & Tombol Form ke Mode "Edit"
+            document.querySelector('.bg-slate-50.border-b h3').innerText = 'Edit Data Permohonan';
+            document.querySelector('.bg-slate-50.border-b p').innerText = 'Sedang memperbarui data. Biarkan berkas kosong jika tidak diganti.';
+            btnSubmit.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Update Data`;
+
+            // Tambahkan Tombol Batal Edit
+            let btnBatal = document.getElementById('btn-batal-edit');
+            if (!btnBatal) {
+                btnBatal = document.createElement('button');
+                btnBatal.id = 'btn-batal-edit';
+                btnBatal.type = 'button';
+                btnBatal.className = 'w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg transition-colors mt-3 text-sm';
+                btnBatal.innerText = 'Batalkan Edit';
+                btnBatal.onclick = resetFormState;
+                form.appendChild(btnBatal);
+            }
+            btnBatal.style.display = 'block';
+
+            // Gulir layar ke arah form
+            document.querySelector('#permohonan-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+
+        // Global function untuk dipanggil dari atribut onclick di tabel
+        window.updateStatus = async (id, stat) => {
+            if(!stat) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'permohonan', id);
+                await updateDoc(docRef, { status: stat });
+                showToast(`Status diubah menjadi: ${stat}`);
+            } catch (e) { showToast("Gagal update status", "error"); }
+        };
+
+        window.hapusData = async (id) => {
+            // Modal konfirmasi khusus agar tidak menggunakan confirm() bawaan browser
+            const bg = document.createElement('div');
+            bg.className = 'fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4';
+            bg.innerHTML = `
+                <div class="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full">
+                    <h3 class="text-lg font-bold text-slate-800">Hapus Data?</h3>
+                    <p class="text-slate-600 mt-1 mb-6 text-sm">Data yang dihapus tidak dapat dikembalikan lagi.</p>
+                    <div class="flex gap-3 justify-end">
+                        <button id="b-batal" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium">Batal</button>
+                        <button id="b-hapus" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-medium">Hapus</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(bg);
+            
+            document.getElementById('b-batal').onclick = () => bg.remove();
+            document.getElementById('b-hapus').onclick = async () => {
+                bg.remove();
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'permohonan', id));
+                    showToast("Data berhasil dihapus.");
+                } catch (e) { showToast("Gagal menghapus data", "error"); }
+            };
+        };
+
+        // Mulai eksekusi saat DOM siap
+        window.addEventListener('DOMContentLoaded', () => {
+            bindInitialHapusBtn();
+            updateHapusBttnStates();
+            initApp();
+        });
+    </script>
+</body>
+</html>
