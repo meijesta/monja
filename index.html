@@ -202,7 +202,7 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Upload Berkas (RAB / Denah)</label>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Upload Berkas (RAB / Denah) - Opsional</label>
                                     <input type="file" id="berkas_file" accept=".pdf,.jpg,.jpeg,.png" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-600 file:text-white hover:file:bg-brand-700 cursor-pointer bg-slate-50 border border-slate-200 rounded-xl">
                                 </div>
 
@@ -693,7 +693,7 @@
         form.onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
-            btn.disabled = true; btn.innerText = 'Menyimpan & Upload...';
+            btn.disabled = true; btn.innerText = 'Menyimpan...';
 
             try {
                 const pipa100 = Number(document.getElementById('pipa_100').value) || 0;
@@ -709,13 +709,21 @@
                     fileUrl = existing?.fileUrl || '';
                 }
 
+                // Proses upload file dengan proteksi aman agar tidak loading macet jika storage belum siap
                 if (fileInput.files && fileInput.files[0]) {
-                    const file = fileInput.files[0];
-                    const storageRef = ref(storage, `berkas/${Date.now()}_${file.name}`);
-                    const snapshot = await uploadBytes(storageRef, file);
-                    fileUrl = await getDownloadURL(snapshot.ref);
+                    try {
+                        btn.innerText = 'Mengunggah File...';
+                        const file = fileInput.files[0];
+                        const storageRef = ref(storage, `berkas/${Date.now()}_${file.name}`);
+                        const snapshot = await uploadBytes(storageRef, file);
+                        fileUrl = await getDownloadURL(snapshot.ref);
+                    } catch (storageErr) {
+                        console.warn("Gagal upload file ke storage, melanjutkan tanpa file:", storageErr);
+                        showToast("Peringatan: File gagal diunggah, data tetap disimpan.", "error");
+                    }
                 }
 
+                btn.innerText = 'Menyimpan Data...';
                 const payload = {
                     agenda: document.getElementById('agenda').value.trim(),
                     nama: document.getElementById('nama').value.trim(),
@@ -741,9 +749,11 @@
                 }
                 resetFormState();
             } catch (e) {
-                console.error(e); showToast("Gagal menyimpan data atau upload file.", "error"); 
+                console.error(e); 
+                showToast("Gagal menyimpan data ke database.", "error"); 
             } finally {
-                btn.disabled = false; btn.innerText = 'Simpan Data Permohonan';
+                btn.disabled = false; 
+                btn.innerText = 'Simpan Data Permohonan';
             }
         };
 
