@@ -38,6 +38,9 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        
+        th.sortable { cursor: pointer; user-select: none; }
+        th.sortable:hover { background-color: rgba(226, 232, 240, 0.8); }
     </style>
 </head>
 <body class="text-slate-800 flex flex-col min-h-screen relative selection:bg-brand-500 selection:text-white">
@@ -111,7 +114,7 @@
             </div>
         </header>
 
-        <main class="flex-grow max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        <main class="flex-grow max-w-[1500px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
             
             <!-- TAB 1: DATA MONITORING -->
             <div id="tab-content-data" class="block animate-fade-in">
@@ -162,12 +165,21 @@
                                     <textarea id="alamat" rows="2" required class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none resize-none transition-all" placeholder="Detail jalan, RT/RW, no rumah"></textarea>
                                 </div>
 
-                                <div class="p-4 bg-brand-50/50 border border-brand-100 rounded-xl">
-                                    <label class="block text-xs font-bold text-brand-900 mb-3">Spesifikasi Pipa (m) *</label>
-                                    <div id="pipa-container" class="space-y-2"></div>
-                                    <button type="button" id="btn-tambah-pipa" class="text-xs text-brand-600 hover:text-brand-800 font-bold flex items-center gap-1 mt-3 px-3 py-1.5 rounded-lg bg-white shadow-sm border border-brand-200 transition-all hover:shadow">
-                                        + Tambah Ukuran
-                                    </button>
+                                <!-- SPESIFIKASI PANJANG PIPA (100, 150, 200 mm) -->
+                                <div class="p-4 bg-brand-50/50 border border-brand-100 rounded-xl space-y-3">
+                                    <label class="block text-xs font-bold text-brand-900">Panjang Pipa (Meter) *</label>
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Diameter 100 mm</label>
+                                        <input type="number" id="pipa_100" min="0" value="0" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Diameter 150 mm</label>
+                                        <input type="number" id="pipa_150" min="0" value="0" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Diameter 200 mm</label>
+                                        <input type="number" id="pipa_200" min="0" value="0" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
+                                    </div>
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-3">
@@ -205,7 +217,10 @@
                     <div class="xl:col-span-8">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full min-h-[600px]">
                             <div class="bg-slate-50/80 border-b border-slate-100 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-                                <h3 class="font-bold text-slate-800 text-lg">Monitoring Real-time</h3>
+                                <div>
+                                    <h3 class="font-bold text-slate-800 text-lg">Monitoring Real-time</h3>
+                                    <p class="text-[11px] text-slate-400">Klik header kolom untuk mengurutkan data (tinggi ke rendah / sebaliknya)</p>
+                                </div>
                                 
                                 <!-- FITUR PENCARIAN -->
                                 <div class="relative w-full sm:w-72">
@@ -219,11 +234,14 @@
                             <div class="p-0 flex-grow table-container overflow-x-auto relative">
                                 <table class="w-full text-left border-collapse whitespace-nowrap">
                                     <thead>
-                                        <tr class="bg-slate-100/50 text-slate-500 text-[10px] uppercase tracking-wider border-b border-slate-200">
-                                            <th class="px-5 py-4 font-extrabold">Identitas & Wilayah</th>
-                                            <th class="px-5 py-4 font-extrabold">Pipa & Beban</th>
-                                            <th class="px-5 py-4 font-extrabold">Status & Progres</th>
-                                            <th class="px-5 py-4 font-extrabold text-right">Tindakan</th>
+                                        <tr class="bg-slate-100/50 text-slate-600 text-[10px] uppercase tracking-wider border-b border-slate-200">
+                                            <th class="px-4 py-4 font-extrabold">Identitas & Agenda</th>
+                                            <th class="px-4 py-4 font-extrabold sortable" onclick="sortData('jenisPekerjaan')">Jenis Pekerjaan ↕</th>
+                                            <th class="px-4 py-4 font-extrabold sortable" onclick="sortData('totalPipa')">Panjang Pipa (100 / 150 / 200) ↕</th>
+                                            <th class="px-4 py-4 font-extrabold sortable" onclick="sortData('rab')">Nilai RAB (Rp) ↕</th>
+                                            <th class="px-4 py-4 font-extrabold sortable" onclick="sortData('pp')">Nilai PP (Rp) ↕</th>
+                                            <th class="px-4 py-4 font-extrabold">Status & Berkas</th>
+                                            <th class="px-4 py-4 font-extrabold text-right">Tindakan</th>
                                         </tr>
                                     </thead>
                                     <tbody id="table-body" class="divide-y divide-slate-100 text-xs"></tbody>
@@ -345,7 +363,6 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- KONFIGURASI FIREBASE ANDA ---
         const firebaseConfig = {
             apiKey: "AIzaSyBI1hDtW8rxWOc1RRwPvMCLu7kn8o6frnU",
             authDomain: "monja-6cc0e.firebaseapp.com",
@@ -361,8 +378,8 @@
         let globalData = [], filteredData = [];
         let editDocId = null, myChart = null;
         let currentUser = null, currentUserRole = 'user';
+        let currentSortColumn = null, sortDirection = 'asc';
 
-        // DATABASE WILAYAH SURABAYA
         const wilayahSurabaya = {
             "Tegalsari": ["Tegalsari", "Kedungdoro", "Keputran", "Dinoyo", "Dr. Sutomo"],
             "Gubeng": ["Gubeng", "Kertajaya", "Pucang Sewu", "Baratajaya", "Mojo", "Airlangga"],
@@ -377,7 +394,6 @@
         };
 
         const form = document.getElementById('permohonan-form');
-        const pipaContainer = document.getElementById('pipa-container');
         const searchInput = document.getElementById('search-input');
         
         const statusColors = {
@@ -393,7 +409,6 @@
         };
         const statusSequence = Object.keys(statusColors);
 
-        // INIT WILAYAH
         function initWilayah() {
             const kecSelect = document.getElementById('kecamatan');
             Object.keys(wilayahSurabaya).sort().forEach(kec => {
@@ -409,7 +424,6 @@
             }
         };
 
-        // TABS
         window.switchTab = (tab) => {
             ['data', 'rekap', 'admin'].forEach(t => {
                 const el = document.getElementById(`tab-content-${t}`);
@@ -427,38 +441,19 @@
             if(tab === 'rekap') renderCharts();
         };
 
-        // PIPA DINAMIS
-        function renderPipaBaris(panjang = '', dia = '') {
-            return `
-                <div class="flex gap-2 items-start pipa-row">
-                    <div class="w-[45%]">
-                        <input type="number" required min="1" value="${panjang}" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 pipa-panjang outline-none" placeholder="Meter">
-                    </div>
-                    <div class="w-[55%] flex gap-1">
-                        <select required class="w-full px-2 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 pipa-diameter bg-white outline-none">
-                            <option value="" disabled ${!dia?'selected':''}>Diameter</option>
-                            <option value="100 mm" ${dia==='100 mm'?'selected':''}>100 mm</option>
-                            <option value="150 mm" ${dia==='150 mm'?'selected':''}>150 mm</option>
-                            <option value="200 mm" ${dia==='200 mm'?'selected':''}>200 mm</option>
-                        </select>
-                        <button type="button" onclick="this.parentElement.parentElement.remove()" class="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
-                    </div>
-                </div>`;
-        }
-        document.getElementById('btn-tambah-pipa').onclick = () => pipaContainer.insertAdjacentHTML('beforeend', renderPipaBaris());
-
         function resetFormState() {
             editDocId = null;
             form.reset();
             document.getElementById('tgl_daftar').value = new Date().toISOString().split('T')[0];
             document.getElementById('kelurahan').innerHTML = '<option value="" disabled selected>Pilih Kec. dulu</option>';
-            pipaContainer.innerHTML = renderPipaBaris();
+            document.getElementById('pipa_100').value = 0;
+            document.getElementById('pipa_150').value = 0;
+            document.getElementById('pipa_200').value = 0;
             document.getElementById('btn-submit').innerText = 'Simpan Data Permohonan';
             const btnBatal = document.getElementById('btn-batal-edit');
             if(btnBatal) btnBatal.remove();
         }
 
-        // UTILS
         function formatRupiah(value) {
             let num = value.replace(/[^,\d]/g, '').toString();
             let split = num.split(',');
@@ -481,7 +476,6 @@
             setTimeout(() => { toast.classList.replace('toast-enter', 'toast-exit'); setTimeout(() => toast.remove(), 300); }, 3000);
         };
 
-        // AUTH & INIT
         async function initApp() {
             initWilayah();
             app = initializeApp(firebaseConfig);
@@ -536,13 +530,26 @@
 
         window.logout = () => signOut(auth);
 
-        // REALTIME DATA
         function startRealtimeUpdates() {
             const dbRef = collection(db, 'artifacts', appId, 'public', 'data', 'permohonan');
             onSnapshot(dbRef, (snapshot) => {
                 globalData = [];
-                snapshot.forEach(doc => globalData.push({ id: doc.id, ...doc.data() }));
-                globalData.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
+                snapshot.forEach(doc => {
+                    let d = doc.data();
+                    // Kompatibilitas mundur jika data lama berbentuk array pipa
+                    let p100 = d.pipa100 !== undefined ? d.pipa100 : (d.pipaData?.find(p=>p.diameter==='100 mm')?.panjang || 0);
+                    let p150 = d.pipa150 !== undefined ? d.pipa150 : (d.pipaData?.find(p=>p.diameter==='150 mm')?.panjang || 0);
+                    let p200 = d.pipa200 !== undefined ? d.pipa200 : (d.pipaData?.find(p=>p.diameter==='200 mm')?.panjang || 0);
+                    
+                    globalData.push({ 
+                        id: doc.id, 
+                        ...d, 
+                        pipa100: Number(p100), 
+                        pipa150: Number(p150), 
+                        pipa200: Number(p200),
+                        totalPipa: Number(p100) + Number(p150) + Number(p200)
+                    });
+                });
                 
                 handleSearch(); 
                 renderSummary();
@@ -550,7 +557,31 @@
             });
         }
 
-        // PENCARIAN
+        window.sortData = (column) => {
+            if (currentSortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortColumn = column;
+                sortDirection = 'asc';
+            }
+
+            filteredData.sort((a, b) => {
+                let valA = a[column];
+                let valB = b[column];
+
+                if (typeof valA === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+
+                if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+                if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            renderTable();
+        };
+
         function handleSearch() {
             const keyword = searchInput.value.toLowerCase();
             filteredData = globalData.filter(d => 
@@ -560,11 +591,15 @@
                 (d.kecamatan || '').toLowerCase().includes(keyword) ||
                 (d.kelurahan || '').toLowerCase().includes(keyword)
             );
+            
+            if (currentSortColumn) {
+                sortData(currentSortColumn);
+                return; // sortData sudah memanggil renderTable
+            }
             renderTable();
         }
         searchInput.addEventListener('input', handleSearch);
 
-        // RENDER FUNGSI
         function renderSummary() {
             const t = globalData.length;
             const bP = globalData.filter(d => d.jenisPekerjaan === 'Beban Pelanggan').length;
@@ -595,41 +630,58 @@
             const idr = (num) => 'Rp' + (num || 0).toLocaleString('id-ID');
 
             tbody.innerHTML = filteredData.map(row => {
-                const totalPanjang = row.pipaData?.reduce((sum, p) => sum + Number(p.panjang), 0) || 0;
-                let pipaStr = row.pipaData?.map(p => `<span class="inline-block bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 mt-1 mr-1 text-[10px] font-bold text-slate-600">${p.panjang}m (Ø ${p.diameter})</span>`).join('') || '';
+                const p100 = row.pipa100 || 0;
+                const p150 = row.pipa150 || 0;
+                const p200 = row.pipa200 || 0;
+                const totalPipa = row.totalPipa || (p100 + p150 + p200);
 
                 const stColor = statusColors[row.status] || statusColors['Pendaftaran'];
                 const bbnBdg = row.jenisPekerjaan === 'Beban Pelanggan' ? 'text-amber-700 bg-amber-50 border-amber-300' : 'text-sky-700 bg-sky-50 border-sky-300';
                 
                 const wilayahStr = [row.kelurahan, row.kecamatan].filter(Boolean).join(', ');
 
-                let linkBerkasHtml = '-';
+                let linkBerkasHtml = '<span class="text-slate-400">Tidak ada berkas</span>';
                 if(row.linkDrive && row.linkDrive.trim() !== '') {
-                    linkBerkasHtml = `<a href="${row.linkDrive}" target="_blank" class="text-[10px] text-brand-600 font-bold hover:underline inline-flex items-center gap-1 mt-1">🔗 Buka Google Drive</a>`;
+                    let cleanUrl = row.linkDrive.trim();
+                    if(!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+                        cleanUrl = 'https://' + cleanUrl;
+                    }
+                    linkBerkasHtml = `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-[11px] border border-brand-200 transition-all shadow-sm">🔗 Buka Berkas (Drive)</a>`;
                 }
 
                 return `
                     <tr class="hover:bg-slate-50/80 border-b border-slate-100 transition-colors">
-                        <td class="px-5 py-4 align-top max-w-[220px]">
+                        <td class="px-4 py-4 align-top max-w-[200px]">
                             <div class="font-extrabold text-brand-700 text-xs mb-1">${row.agenda || '-'}</div>
                             <div class="font-bold text-slate-800">${row.nama}</div>
                             <div class="text-[10px] text-slate-500 mt-1 line-clamp-2" title="${row.alamat}">${row.alamat}</div>
                             <div class="text-[10px] font-bold text-slate-600 mt-0.5">📍 ${wilayahStr || '-'}</div>
                         </td>
-                        <td class="px-5 py-4 align-top whitespace-normal min-w-[200px]">
-                            <div class="mb-2"><span class="px-2 py-0.5 rounded-md text-[10px] border ${bbnBdg} font-bold">${row.jenisPekerjaan}</span></div>
-                            <div class="font-bold text-slate-700 text-[11px] mb-0.5">Total Pipa: ${totalPanjang} Meter</div>
-                            <div class="flex flex-wrap">${pipaStr}</div>
-                            <div class="text-[10px] text-slate-500 mt-2">RAB: <span class="font-bold text-slate-700">${idr(row.rab)}</span> | PP: <span class="font-bold text-slate-700">${idr(row.pp)}</span></div>
+                        <td class="px-4 py-4 align-top">
+                            <span class="px-2 py-0.5 rounded-md text-[10px] border ${bbnBdg} font-bold">${row.jenisPekerjaan || '-'}</span>
                         </td>
-                        <td class="px-5 py-4 align-top">
-                            <span class="px-3 py-1 rounded-lg text-[10px] font-extrabold border ${stColor} shadow-sm">${row.status || 'Pendaftaran'}</span>
-                            <div class="mt-2 text-[10px] font-medium text-slate-400">Update Terakhir: <br>${row.history?.[row.status] || '-'}</div>
-                            <div class="mt-1">${linkBerkasHtml}</div>
+                        <td class="px-4 py-4 align-top whitespace-nowrap">
+                            <div class="font-bold text-slate-800 text-xs mb-1">Total: ${totalPipa} Meter</div>
+                            <div class="text-[10px] text-slate-500 space-y-0.5 bg-slate-50 p-1.5 rounded border border-slate-100">
+                                <div>• 100 mm: <span class="font-bold text-slate-700">${p100} m</span></div>
+                                <div>• 150 mm: <span class="font-bold text-slate-700">${p150} m</span></div>
+                                <div>• 200 mm: <span class="font-bold text-slate-700">${p200} m</span></div>
+                            </div>
                         </td>
-                        <td class="px-5 py-4 align-top text-right space-y-1.5">
-                            <button onclick="window.openUpdateStatus('${row.id}')" class="block w-full text-center bg-white hover:bg-brand-50 text-brand-700 font-bold py-1.5 px-3 rounded-lg text-xs border border-brand-200 shadow-sm transition-all">Update Status</button>
-                            <button onclick="window.openRiwayat('${row.id}')" class="block w-full text-center bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold py-1 px-3 rounded-lg text-[10px] border border-slate-200 transition-all">Lihat Riwayat</button>
+                        <td class="px-4 py-4 align-top font-bold text-slate-700">
+                            ${idr(row.rab)}
+                        </td>
+                        <td class="px-4 py-4 align-top font-bold text-slate-700">
+                            ${idr(row.pp)}
+                        </td>
+                        <td class="px-4 py-4 align-top">
+                            <span class="px-3 py-1 rounded-lg text-[10px] font-extrabold border ${stColor} shadow-sm inline-block mb-2">${row.status || 'Pendaftaran'}</span>
+                            <div class="text-[10px] font-medium text-slate-400 mb-2">Update: ${row.history?.[row.status] || '-'}</div>
+                            <div>${linkBerkasHtml}</div>
+                        </td>
+                        <td class="px-4 py-4 align-top text-right space-y-1.5">
+                            <button onclick="window.openUpdateStatus('${row.id}')" class="block w-full text-center bg-white hover:bg-brand-50 text-brand-700 font-bold py-1 px-2.5 rounded-lg text-[11px] border border-brand-200 shadow-sm transition-all">Update Status</button>
+                            <button onclick="window.openRiwayat('${row.id}')" class="block w-full text-center bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold py-1 px-2.5 rounded-lg text-[10px] border border-slate-200 transition-all">Lihat Riwayat</button>
                             <div class="flex gap-2 justify-end pt-1">
                                 <button onclick="window.editData('${row.id}')" class="text-[10px] text-amber-600 hover:text-amber-800 font-bold">Edit</button>
                                 <span class="text-slate-300">|</span>
@@ -641,20 +693,15 @@
             }).join('');
         }
 
-        // FORM SUBMIT
         form.onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
             btn.disabled = true; btn.innerText = 'Menyimpan...';
 
             try {
-                const pipaData = [];
-                document.querySelectorAll('.pipa-row').forEach(row => {
-                    const p = row.querySelector('.pipa-panjang').value;
-                    const d = row.querySelector('.pipa-diameter').value;
-                    if(p && d) pipaData.push({ panjang: Number(p), diameter: d });
-                });
-
+                const pipa100 = Number(document.getElementById('pipa_100').value) || 0;
+                const pipa150 = Number(document.getElementById('pipa_150').value) || 0;
+                const pipa200 = Number(document.getElementById('pipa_200').value) || 0;
                 const rab = Number(document.getElementById('rab').value.replace(/\./g, '')) || 0;
                 const pp = Number(document.getElementById('pp').value.replace(/\./g, '')) || 0;
                 const linkDrive = document.getElementById('link_drive').value.trim();
@@ -665,7 +712,8 @@
                     kecamatan: document.getElementById('kecamatan').value,
                     kelurahan: document.getElementById('kelurahan').value,
                     alamat: document.getElementById('alamat').value.trim(),
-                    pipaData, rab, pp,
+                    pipa100, pipa150, pipa200,
+                    rab, pp,
                     jenisPekerjaan: document.getElementById('jenis_pekerjaan').value,
                     linkDrive: linkDrive
                 };
@@ -701,12 +749,13 @@
             document.getElementById('kelurahan').value = d.kelurahan || '';
             
             document.getElementById('alamat').value = d.alamat;
+            document.getElementById('pipa_100').value = d.pipa100 || 0;
+            document.getElementById('pipa_150').value = d.pipa150 || 0;
+            document.getElementById('pipa_200').value = d.pipa200 || 0;
             document.getElementById('rab').value = formatRupiah(d.rab.toString());
             document.getElementById('pp').value = formatRupiah(d.pp.toString());
             document.getElementById('jenis_pekerjaan').value = d.jenisPekerjaan;
             document.getElementById('link_drive').value = d.linkDrive || '';
-            
-            pipaContainer.innerHTML = d.pipaData.map(p => renderPipaBaris(p.panjang, p.diameter)).join('');
             
             const btn = document.getElementById('btn-submit');
             btn.innerText = 'Update Data Dasar';
@@ -730,7 +779,6 @@
             }
         };
 
-        // MODAL UPDATE STATUS
         window.openUpdateStatus = (id) => {
             const row = globalData.find(d => d.id === id);
             document.getElementById('ms-id').value = id;
@@ -757,7 +805,6 @@
             } catch(e) { console.error(e); showToast("Gagal update status", "error"); }
         };
 
-        // MODAL RIWAYAT
         window.openRiwayat = (id) => {
             const row = globalData.find(d => d.id === id);
             const history = row.history || {};
@@ -790,7 +837,6 @@
         };
         window.closeModalRiwayat = () => document.getElementById('modal-riwayat').classList.add('hidden');
 
-        // REKAP GRAFIK
         window.renderCharts = () => {
             const years = {};
             globalData.forEach(d => {
@@ -825,7 +871,6 @@
             });
         };
 
-        // ADMIN: BUAT USER BARU
         document.getElementById('admin-add-user-form').onsubmit = async (e) => {
             e.preventDefault();
             if(currentUserRole !== 'admin') return showToast("Hanya Admin yang dapat membuat user!", "error");
