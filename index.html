@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIMOJA - PDAM Surya Sembada</title>
+    <title>SIMOJA - Perumda Air Minum Surya Sembada</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -81,7 +81,7 @@
                         </div>
                         <div>
                             <h1 class="font-extrabold text-xl leading-tight tracking-tight">SIMOJA</h1>
-                            <p class="text-[11px] text-brand-100 font-medium">PDAM Surya Sembada Kota Surabaya</p>
+                            <p class="text-[11px] text-brand-100 font-medium">Perumda Air Minum Surya Sembada</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
@@ -202,7 +202,7 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Upload Berkas (RAB / Denah) - Opsional</label>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Upload Attachment (RAB / Denah)</label>
                                     <input type="file" id="berkas_file" accept=".pdf,.jpg,.jpeg,.png" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-600 file:text-white hover:file:bg-brand-700 cursor-pointer bg-slate-50 border border-slate-200 rounded-xl">
                                 </div>
 
@@ -361,12 +361,12 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+        import { getDatabase, ref as dbRef, set, push, onValue, remove, update, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBI1hDtW8rxWOc1RRwPvMCLu7kn8o6frnU",
             authDomain: "monja-6cc0e.firebaseapp.com",
+            databaseURL: "https://monja-6cc0e-default-rtdb.asia-southeast1.firebasedatabase.app", // Pastikan URL Realtime Database Anda sudah benar di sini
             projectId: "monja-6cc0e",
             storageBucket: "monja-6cc0e.firebasestorage.app",
             messagingSenderId: "705260868730",
@@ -374,8 +374,7 @@
             measurementId: "G-TZEWRD142C"
         };
 
-        const appId = 'pdam-surabaya-monitoring';
-        let app, db, auth, storage;
+        let app, db, auth;
         let globalData = [], filteredData = [];
         let editDocId = null, myChart = null;
         let currentUser = null, currentUserRole = 'user';
@@ -480,9 +479,8 @@
         async function initApp() {
             initWilayah();
             app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
+            db = getDatabase(app);
             auth = getAuth(app);
-            storage = getStorage(app);
 
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
@@ -490,12 +488,12 @@
                     document.getElementById('user-email-display').innerText = user.email;
                     
                     try {
-                        const roleDoc = await getDoc(doc(db, 'users_roles', user.uid));
-                        if (roleDoc.exists()) {
-                            currentUserRole = roleDoc.data().role;
+                        const roleSnap = await get(dbRef(db, `users_roles/${user.uid}`));
+                        if (roleSnap.exists()) {
+                            currentUserRole = roleSnap.val().role;
                         } else {
                             currentUserRole = 'admin'; 
-                            await setDoc(doc(db, 'users_roles', user.uid), { role: 'admin', email: user.email });
+                            await set(dbRef(db, `users_roles/${user.uid}`), { role: 'admin', email: user.email });
                         }
                     } catch(e) { currentUserRole = 'user'; }
 
@@ -533,25 +531,26 @@
         window.logout = () => signOut(auth);
 
         function startRealtimeUpdates() {
-            const dbRef = collection(db, 'artifacts', appId, 'public', 'data', 'permohonan');
-            onSnapshot(dbRef, (snapshot) => {
+            const dataRef = dbRef(db, 'permohonan');
+            onValue(dataRef, (snapshot) => {
                 globalData = [];
-                snapshot.forEach(doc => {
-                    let d = doc.data();
-                    let p100 = d.pipa100 !== undefined ? d.pipa100 : (d.pipaData?.find(p=>p.diameter==='100 mm')?.panjang || 0);
-                    let p150 = d.pipa150 !== undefined ? d.pipa150 : (d.pipaData?.find(p=>p.diameter==='150 mm')?.panjang || 0);
-                    let p200 = d.pipa200 !== undefined ? d.pipa200 : (d.pipaData?.find(p=>p.diameter==='200 mm')?.panjang || 0);
-                    
-                    globalData.push({ 
-                        id: doc.id, 
-                        ...d, 
-                        pipa100: Number(p100), 
-                        pipa150: Number(p150), 
-                        pipa200: Number(p200),
-                        totalPipa: Number(p100) + Number(p150) + Number(p200)
+                if(snapshot.exists()) {
+                    snapshot.forEach((childSnapshot) => {
+                        let d = childSnapshot.val();
+                        let p100 = Number(d.pipa100) || 0;
+                        let p150 = Number(d.pipa150) || 0;
+                        let p200 = Number(d.pipa200) || 0;
+                        
+                        globalData.push({ 
+                            id: childSnapshot.key, 
+                            ...d, 
+                            pipa100: p100, 
+                            pipa150: p150, 
+                            pipa200: p200,
+                            totalPipa: p100 + p150 + p200
+                        });
                     });
-                });
-                
+                }
                 handleSearch(); 
                 renderSummary();
                 if(document.getElementById('tab-content-rekap').style.display === 'block') renderCharts();
@@ -690,6 +689,15 @@
             }).join('');
         }
 
+        const readFileAsDataURL = (file) => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = (error) => reject(error);
+                reader.readAsDataURL(file);
+            });
+        };
+
         form.onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
@@ -709,21 +717,13 @@
                     fileUrl = existing?.fileUrl || '';
                 }
 
-                // Proses upload file dengan proteksi aman agar tidak loading macet jika storage belum siap
                 if (fileInput.files && fileInput.files[0]) {
-                    try {
-                        btn.innerText = 'Mengunggah File...';
-                        const file = fileInput.files[0];
-                        const storageRef = ref(storage, `berkas/${Date.now()}_${file.name}`);
-                        const snapshot = await uploadBytes(storageRef, file);
-                        fileUrl = await getDownloadURL(snapshot.ref);
-                    } catch (storageErr) {
-                        console.warn("Gagal upload file ke storage, melanjutkan tanpa file:", storageErr);
-                        showToast("Peringatan: File gagal diunggah, data tetap disimpan.", "error");
-                    }
+                    btn.innerText = 'Memproses Berkas...';
+                    const file = fileInput.files[0];
+                    fileUrl = await readFileAsDataURL(file);
                 }
 
-                btn.innerText = 'Menyimpan Data...';
+                btn.innerText = 'Menyimpan ke Database...';
                 const payload = {
                     agenda: document.getElementById('agenda').value.trim(),
                     nama: document.getElementById('nama').value.trim(),
@@ -737,23 +737,22 @@
                 };
 
                 if (editDocId) {
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'permohonan', editDocId), payload);
+                    await update(dbRef(db, `permohonan/${editDocId}`), payload);
                     showToast("Data permohonan berhasil diperbarui!");
                 } else {
                     payload.status = 'Pendaftaran'; 
                     payload.history = { 'Pendaftaran': document.getElementById('tgl_daftar').value };
-                    payload.timestamp = serverTimestamp();
+                    payload.timestamp = Date.now();
                     
-                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'permohonan'), payload);
+                    const newRef = push(dbRef(db, 'permohonan'));
+                    await set(newRef, payload);
                     showToast("Permohonan baru berhasil disimpan!");
                 }
                 resetFormState();
             } catch (e) {
-                console.error(e); 
-                showToast("Gagal menyimpan data ke database.", "error"); 
+                console.error(e); showToast("Gagal menyimpan data.", "error"); 
             } finally {
-                btn.disabled = false; 
-                btn.innerText = 'Simpan Data Permohonan';
+                btn.disabled = false; btn.innerText = 'Simpan Data Permohonan';
             }
         };
 
@@ -794,7 +793,7 @@
         window.hapusData = async (id) => {
             if(confirm("Hapus data permohonan ini secara permanen?")) {
                 try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'permohonan', id));
+                    await remove(dbRef(db, `permohonan/${id}`));
                     showToast("Data terhapus.");
                 } catch(e) { showToast("Gagal hapus", "error"); }
             }
@@ -819,8 +818,10 @@
             if(!tgl) return showToast("Tanggal wajib diisi!", "error");
 
             try {
-                const r = doc(db, 'artifacts', appId, 'public', 'data', 'permohonan', id);
-                await updateDoc(r, { status: stat, [`history.${stat}`]: tgl });
+                await update(dbRef(db, `permohonan/${id}`), { 
+                    status: stat, 
+                    [`history/${stat}`]: tgl 
+                });
                 showToast(`Status berhasil diupdate ke ${stat}`);
                 closeModalStatus();
             } catch(e) { console.error(e); showToast("Gagal update status", "error"); }
@@ -909,8 +910,8 @@
                 
                 const userCredential = await createUserWithEmailAndPassword(adminAuth, email, password);
                 
-                await setDoc(doc(db, 'users_roles', userCredential.user.uid), {
-                    email: email, role: role, createdAt: serverTimestamp()
+                await set(dbRef(db, `users_roles/${userCredential.user.uid}`), {
+                    email: email, role: role, createdAt: Date.now()
                 });
                 
                 await signOut(adminAuth);
