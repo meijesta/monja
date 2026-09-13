@@ -621,6 +621,27 @@
             document.getElementById('stats-container').innerHTML = html;
         }
 
+        // Fungsi pembuka file attachment yang aman dari blank tab
+        window.openAttachment = (base64Data, fileName) => {
+            if (!base64Data) return showToast("Tidak ada file lampiran.", "error");
+            try {
+                const arr = base64Data.split(',');
+                const mime = arr[0].match(/:(.*?);/)[1];
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while(n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                const blob = new Blob([u8arr], {type: mime});
+                const blobUrl = URL.createObjectURL(blob);
+                window.open(blobUrl, '_blank');
+            } catch(e) {
+                // Fallback jika gagal parse blob
+                window.open(base64Data, '_blank');
+            }
+        };
+
         function renderTable() {
             const tbody = document.getElementById('table-body');
             const empty = document.getElementById('empty-state');
@@ -642,7 +663,9 @@
 
                 let attachmentHtml = '<span class="text-slate-400 text-[10px]">No file</span>';
                 if(row.fileUrl && row.fileUrl.trim() !== '') {
-                    attachmentHtml = `<a href="${row.fileUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-[11px] border border-brand-200 transition-all shadow-sm">📎 Attachment</a>`;
+                    // Escape string base64 agar aman dipanggil via onclick
+                    const safeData = row.fileUrl.replace(/'/g, "\\'");
+                    attachmentHtml = `<button onclick="window.openAttachment('${safeData}', '${row.agenda}')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-[11px] border border-brand-200 transition-all shadow-sm cursor-pointer">📎 Attachment</button>`;
                 }
 
                 return `
