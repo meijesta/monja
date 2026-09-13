@@ -43,10 +43,10 @@
 <body class="text-slate-800 flex flex-col min-h-screen relative selection:bg-brand-500 selection:text-white">
 
     <!-- LOGIN SCREEN -->
-    <div id="login-screen" class="fixed inset-0 z-50 bg-[url('https://images.unsplash.com/photo-1555626906-fcf10d6851b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')] bg-cover bg-center flex items-center justify-center">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+    <div id="login-screen" class="fixed inset-0 z-50 bg-[url('https://www.suarasurabaya.net/wp-content/uploads/2025/11/Pipa-e1763965876940-840x493.jpeg')] bg-cover bg-center flex items-center justify-center">
+        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-[2px]"></div>
         <div class="relative w-full max-w-md p-8 m-4 glass-panel rounded-2xl shadow-2xl animate-fade-in text-center">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Logo_PDAM.svg/1200px-Logo_PDAM.svg.png" alt="Logo PDAM" class="h-20 mx-auto mb-4 object-contain drop-shadow-md">
+            <img src="https://catatmeter.pdam-sby.go.id/assets2/content/logo-perumda-sby-c.png" alt="Logo PDAM" class="h-20 mx-auto mb-4 object-contain drop-shadow-md">
             <h2 class="text-2xl font-bold text-slate-800">SIMOJA</h2>
             <p class="text-sm text-slate-500 mb-8">Sistem Monitoring Jaringan Air Baru</p>
             
@@ -74,7 +74,7 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between py-4 gap-4">
                     <div class="flex items-center gap-4">
                         <div class="bg-white p-1.5 rounded-full shadow-md">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Logo_PDAM.svg/1200px-Logo_PDAM.svg.png" class="h-8 w-8 object-contain">
+                            <img src="https://catatmeter.pdam-sby.go.id/assets2/content/logo-perumda-sby-c.png" class="h-8 w-8 object-contain">
                         </div>
                         <div>
                             <h1 class="font-extrabold text-xl leading-tight tracking-tight">SIMOJA</h1>
@@ -362,7 +362,7 @@
         let editDocId = null, myChart = null;
         let currentUser = null, currentUserRole = 'user';
 
-        // DATABASE WILAYAH SURABAYA (Sampel 10 Kecamatan Utama, silakan tambah sesuai kebutuhan)
+        // DATABASE WILAYAH SURABAYA
         const wilayahSurabaya = {
             "Tegalsari": ["Tegalsari", "Kedungdoro", "Keputran", "Dinoyo", "Dr. Sutomo"],
             "Gubeng": ["Gubeng", "Kertajaya", "Pucang Sewu", "Baratajaya", "Mojo", "Airlangga"],
@@ -493,14 +493,12 @@
                     currentUser = user;
                     document.getElementById('user-email-display').innerText = user.email;
                     
-                    // Cek role dari firestore (koleksi users_roles)
                     try {
                         const roleDoc = await getDoc(doc(db, 'users_roles', user.uid));
-                        // Jika tidak ada di DB, kita asumsikan yang pertama login adalah Admin, lainnya User.
                         if (roleDoc.exists()) {
                             currentUserRole = roleDoc.data().role;
                         } else {
-                            currentUserRole = 'admin'; // Default fallback untuk setup awal
+                            currentUserRole = 'admin'; 
                             await setDoc(doc(db, 'users_roles', user.uid), { role: 'admin', email: user.email });
                         }
                     } catch(e) { currentUserRole = 'user'; }
@@ -546,7 +544,7 @@
                 snapshot.forEach(doc => globalData.push({ id: doc.id, ...doc.data() }));
                 globalData.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
                 
-                handleSearch(); // trigger render & filter
+                handleSearch(); 
                 renderSummary();
                 if(document.getElementById('tab-content-rekap').style.display === 'block') renderCharts();
             });
@@ -839,18 +837,15 @@
             const role = document.getElementById('new-user-role').value;
 
             try {
-                // Trik: Gunakan Firebase App terpisah agar Admin yang sedang login tidak ter-logout
                 const adminApp = initializeApp(firebaseConfig, 'AdminApp');
                 const adminAuth = getAuth(adminApp);
                 
                 const userCredential = await createUserWithEmailAndPassword(adminAuth, email, password);
                 
-                // Simpan role ke database
                 await setDoc(doc(db, 'users_roles', userCredential.user.uid), {
                     email: email, role: role, createdAt: serverTimestamp()
                 });
                 
-                // Logout instance sekunder
                 await signOut(adminAuth);
                 
                 showToast(`Akun ${email} berhasil dibuat sebagai ${role}!`);
