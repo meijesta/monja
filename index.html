@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIMONJA - Perumda Air Minum Surya Sembada</title>
+    <title>SIMOJA - PDAM Surya Sembada</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -33,9 +33,6 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        
-        th.sortable { cursor: pointer; user-select: none; }
-        th.sortable:hover { background-color: rgba(226, 232, 240, 0.8); }
     </style>
 </head>
 <body class="text-slate-800 flex flex-col min-h-screen relative selection:bg-brand-500 selection:text-white">
@@ -76,7 +73,7 @@
                         </div>
                         <div>
                             <h1 class="font-extrabold text-lg sm:text-xl leading-tight tracking-tight">SIMOJA</h1>
-                            <p class="text-[10px] sm:text-[11px] text-brand-100 font-medium">Perumda Air Minum Surya Sembada Kota Surabaya</p>
+                            <p class="text-[10px] sm:text-[11px] text-brand-100 font-medium">PDAM Surya Sembada Kota Surabaya</p>
                         </div>
                     </div>
                     <div class="flex items-center justify-between sm:justify-end gap-3 border-t border-white/10 sm:border-0 pt-2 sm:pt-0">
@@ -99,7 +96,11 @@
                     </button>
                     <button onclick="switchTab('rekap')" id="tab-btn-rekap" class="py-3 px-1 tab-inactive transition-colors flex items-center gap-2 whitespace-nowrap text-xs sm:text-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
-                        Rekapitulasi
+                        Rekapitulasi Grafik
+                    </button>
+                    <button onclick="switchTab('rekapdetail')" id="tab-btn-rekapdetail" class="py-3 px-1 tab-inactive transition-colors flex items-center gap-2 whitespace-nowrap text-xs sm:text-sm text-brand-700">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                        Rekap Detail
                     </button>
                     <button onclick="switchTab('admin')" id="tab-btn-admin" class="hidden py-3 px-1 tab-inactive transition-colors flex items-center gap-2 whitespace-nowrap text-purple-600 text-xs sm:text-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
@@ -198,6 +199,12 @@
                                         <option value="Beban Perumda">Beban Perumda</option>
                                     </select>
                                 </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Keterangan Tambahan</label>
+                                    <input type="text" id="keterangan" class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition-all" placeholder="Catatan atau keterangan opsional">
+                                </div>
+
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5">Upload Attachment (RAB / Denah)</label>
                                     <input type="file" id="berkas_file" accept=".pdf,.jpg,.jpeg,.png" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-600 file:text-white hover:file:bg-brand-700 cursor-pointer bg-slate-50 border border-slate-200 rounded-xl">
@@ -259,7 +266,43 @@
                 </div>
             </div>
 
-            <!-- TAB 3: ADMIN PENGGUNA -->
+            <!-- TAB 3: REKAP DETAIL (BY TAHUN, PROSES, JENIS PEKERJAAN) -->
+            <div id="tab-content-rekapdetail" class="hidden animate-fade-in space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-slate-100">
+                        <div>
+                            <h3 class="font-extrabold text-slate-800 text-lg sm:text-xl">Rekapitulasi Berdasarkan Tahun, Proses, & Jenis Pekerjaan</h3>
+                            <p class="text-xs sm:text-sm text-slate-500 mt-1">Ringkasan total permohonan dan akumulasi panjang pipa serta nilai anggaran.</p>
+                        </div>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <select id="filter-rekap-tahun" onchange="renderRekapDetailTable()" class="px-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand-500">
+                                <option value="ALL">Semua Tahun</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse whitespace-nowrap text-xs sm:text-sm">
+                            <thead>
+                                <tr class="bg-slate-100/70 text-slate-700 font-extrabold uppercase tracking-wider border-b border-slate-200">
+                                    <th class="px-4 py-3.5">Tahun</th>
+                                    <th class="px-4 py-3.5">Proses / Status</th>
+                                    <th class="px-4 py-3.5">Jenis Pekerjaan</th>
+                                    <th class="px-4 py-3.5 text-center">Jumlah Permohonan</th>
+                                    <th class="px-4 py-3.5 text-right">Total Panjang Pipa</th>
+                                    <th class="px-4 py-3.5 text-right">Total RAB (Rp)</th>
+                                    <th class="px-4 py-3.5 text-right">Total PP (Rp)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rekap-detail-tbody" class="divide-y divide-slate-100">
+                                <!-- Render dinamis -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: ADMIN PENGGUNA -->
             <div id="tab-content-admin" class="hidden animate-fade-in max-w-3xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="bg-gradient-to-r from-purple-700 to-indigo-600 px-6 sm:px-8 py-5 sm:py-6 text-white">
@@ -409,7 +452,7 @@
         };
 
         window.switchTab = (tab) => {
-            ['data', 'rekap', 'admin'].forEach(t => {
+            ['data', 'rekap', 'rekapdetail', 'admin'].forEach(t => {
                 const el = document.getElementById(`tab-content-${t}`);
                 const btn = document.getElementById(`tab-btn-${t}`);
                 if(!el || !btn) return;
@@ -423,6 +466,7 @@
                 }
             });
             if(tab === 'rekap') renderCharts();
+            if(tab === 'rekapdetail') initRekapDetail();
         };
 
         function resetFormState() {
@@ -538,6 +582,7 @@
                 handleSearch(); 
                 renderSummary();
                 if(document.getElementById('tab-content-rekap').style.display === 'block') renderCharts();
+                if(document.getElementById('tab-content-rekapdetail').style.display === 'block') initRekapDetail();
             });
         }
 
@@ -548,7 +593,8 @@
                 (d.nama || '').toLowerCase().includes(keyword) ||
                 (d.alamat || '').toLowerCase().includes(keyword) ||
                 (d.kecamatan || '').toLowerCase().includes(keyword) ||
-                (d.kelurahan || '').toLowerCase().includes(keyword)
+                (d.kelurahan || '').toLowerCase().includes(keyword) ||
+                (d.keterangan || '').toLowerCase().includes(keyword)
             );
             renderCards();
         }
@@ -616,6 +662,8 @@
                     attachmentHtml = `<button onclick="window.openAttachment('${safeData}')" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs border border-brand-200 transition-all shadow-sm cursor-pointer">📎 Lihat Attachment</button>`;
                 }
 
+                let ketHtml = row.keterangan ? `<div class="text-xs text-slate-600 bg-amber-50/50 p-2 rounded-lg border border-amber-100"><strong>Keterangan:</strong> ${row.keterangan}</div>` : '';
+
                 return `
                     <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm space-y-3 transition-all hover:shadow-md">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
@@ -641,6 +689,8 @@
                                 <p class="text-[11px] text-slate-500">100mm: ${p100}m | 150mm: ${p150}m | 200mm: ${p200}m</p>
                             </div>
                         </div>
+
+                        ${ketHtml}
 
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs bg-brand-50/30 p-3 rounded-xl border border-brand-100/50">
                             <div>
@@ -670,6 +720,85 @@
                 `;
             }).join('');
         }
+
+        // LOGIKA TAB REKAP DETAIL (By Tahun, Proses/Status, Jenis Pekerjaan)
+        function initRekapDetail() {
+            const selectTahun = document.getElementById('filter-rekap-tahun');
+            const yearsSet = new Set();
+            
+            globalData.forEach(d => {
+                let tgl = d.history?.['Pendaftaran'] || '';
+                let y = tgl ? tgl.split('-')[0] : new Date().getFullYear().toString();
+                yearsSet.add(y);
+            });
+
+            const currentSelected = selectTahun.value;
+            let optionsHtml = '<option value="ALL">Semua Tahun</option>';
+            Array.from(yearsSet).sort().reverse().forEach(y => {
+                optionsHtml += `<option value="${y}">${y}</option>`;
+            });
+            selectTahun.innerHTML = optionsHtml;
+            if(yearsSet.has(currentSelected)) selectTahun.value = currentSelected;
+
+            renderRekapDetailTable();
+        }
+
+        window.renderRekapDetailTable = () => {
+            const selectedTahun = document.getElementById('filter-rekap-tahun').value;
+            const tbody = document.getElementById('rekap-detail-tbody');
+            
+            const grouped = {};
+
+            globalData.forEach(d => {
+                let tgl = d.history?.['Pendaftaran'] || '';
+                let y = tgl ? tgl.split('-')[0] : new Date().getFullYear().toString();
+
+                if(selectedTahun !== 'ALL' && y !== selectedTahun) return;
+
+                let status = d.status || 'Pendaftaran';
+                let jenis = d.jenisPekerjaan || 'Beban Pelanggan';
+                let key = `${y}___${status}___${jenis}`;
+
+                if(!grouped[key]) {
+                    grouped[key] = { tahun: y, status: status, jenis: jenis, count: 0, totalPipa: 0, totalRab: 0, totalPp: 0 };
+                }
+
+                grouped[key].count += 1;
+                grouped[key].totalPipa += (Number(d.totalPipa) || 0);
+                grouped[key].totalRab += (Number(d.rab) || 0);
+                grouped[key].totalPp += (Number(d.pp) || 0);
+            });
+
+            const keys = Object.keys(grouped).sort();
+            if(keys.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400 italic">Tidak ada data rekap untuk kriteria ini.</td></tr>`;
+                return;
+            }
+
+            const idr = (num) => 'Rp' + (num || 0).toLocaleString('id-ID');
+
+            tbody.innerHTML = keys.map(k => {
+                const item = grouped[k];
+                const stColor = statusColors[item.status] || 'bg-slate-100 text-slate-700';
+                const bbnBdg = item.jenis === 'Beban Pelanggan' ? 'text-amber-700 bg-amber-50 border-amber-300' : 'text-sky-700 bg-sky-50 border-sky-300';
+
+                return `
+                    <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
+                        <td class="px-4 py-3.5 font-extrabold text-slate-800">${item.tahun}</td>
+                        <td class="px-4 py-3.5">
+                            <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold border ${stColor}">${item.status}</span>
+                        </td>
+                        <td class="px-4 py-3.5">
+                            <span class="px-2.5 py-0.5 rounded text-[11px] font-bold border ${bbnBdg}">${item.jenis}</span>
+                        </td>
+                        <td class="px-4 py-3.5 text-center font-extrabold text-brand-700">${item.count} Permohonan</td>
+                        <td class="px-4 py-3.5 text-right font-bold text-slate-700">${item.totalPipa} Meter</td>
+                        <td class="px-4 py-3.5 text-right font-bold text-slate-800">${idr(item.totalRab)}</td>
+                        <td class="px-4 py-3.5 text-right font-bold text-slate-800">${idr(item.totalPp)}</td>
+                    </tr>
+                `;
+            }).join('');
+        };
 
         const readFileAsDataURL = (file) => {
             return new Promise((resolve, reject) => {
@@ -715,6 +844,7 @@
                     pipa100, pipa150, pipa200,
                     rab, pp,
                     jenisPekerjaan: document.getElementById('jenis_pekerjaan').value,
+                    keterangan: document.getElementById('keterangan').value.trim(),
                     fileUrl: fileUrl
                 };
 
@@ -758,6 +888,7 @@
             document.getElementById('rab').value = formatRupiah(d.rab.toString());
             document.getElementById('pp').value = formatRupiah(d.pp.toString());
             document.getElementById('jenis_pekerjaan').value = d.jenisPekerjaan;
+            document.getElementById('keterangan').value = d.keterangan || '';
             
             const btn = document.getElementById('btn-submit');
             btn.innerText = 'Update Data Dasar';
