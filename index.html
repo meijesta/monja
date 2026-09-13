@@ -239,7 +239,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // Auth Module Dihapus agar tidak tertahan
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- KONFIGURASI FIREBASE ANDA ---
@@ -265,7 +265,7 @@
         const pipaContainer = document.getElementById('pipa-container');
         const btnTambahPipa = document.getElementById('btn-tambah-pipa');
         
-        let db, auth;
+        let db;
         let globalData = [];
         let unsubscribe = null;
         let editDocId = null;
@@ -404,9 +404,8 @@
             try {
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
-                auth = getAuth(app);
 
-                await signInAnonymously(auth);
+                // Langsung load data tanpa perlu melewati Auth (Kondisi Test Mode Firestore)
                 startRealtimeUpdates();
                 
                 connectionIndicator.className = "flex items-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200";
@@ -527,7 +526,6 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!auth.currentUser) return showToast("Sistem belum terkoneksi ke database.", "error");
 
             const btnAsli = btnSubmit.innerHTML;
             btnSubmit.disabled = true;
