@@ -33,13 +33,11 @@
     
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        /* Kustomisasi scrollbar untuk tabel */
         .table-container::-webkit-scrollbar { height: 8px; }
         .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* Animasi Toast */
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
@@ -80,7 +78,6 @@
         <div class="mb-8">
             <h2 class="text-xl font-semibold mb-4 text-slate-700">Dashboard Statistik</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="stats-container">
-                <!-- Skeleton Loader Dashboard -->
                 <div class="bg-white rounded-xl shadow-sm p-5 border border-slate-100 flex items-center justify-between animate-pulse">
                     <div class="h-10 bg-slate-200 rounded w-1/2"></div>
                     <div class="h-10 w-10 bg-slate-200 rounded-full"></div>
@@ -98,7 +95,6 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <!-- Kolom Form Entry -->
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden sticky top-24">
                     <div class="bg-slate-50 border-b border-slate-200 px-6 py-4">
@@ -117,7 +113,6 @@
                             <textarea id="alamat" rows="2" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-pdam-500 focus:border-pdam-500 outline-none transition-colors resize-none" placeholder="Alamat lengkap lokasi..."></textarea>
                         </div>
 
-                        <!-- Bagian Pipa Dinamis -->
                         <div class="space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-lg">
                             <label class="block text-sm font-medium text-slate-700 mb-2">Spesifikasi Pipa *</label>
                             
@@ -225,7 +220,6 @@
                                 </tr>
                             </thead>
                             <tbody id="table-body" class="divide-y divide-slate-100 text-sm">
-                                <!-- Data Baris Tabel -->
                             </tbody>
                         </table>
                         
@@ -241,26 +235,26 @@
         </div>
     </main>
 
-    <!-- Kontainer Notifikasi Toast -->
     <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Konfigurasi Lingkungan Global
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pdam-surabaya-monitoring';
-        const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
-        let firebaseConfig = {};
-        
-        try {
-            firebaseConfig = JSON.parse(firebaseConfigStr);
-        } catch (e) {
-            console.error("Kesalahan parsing konfigurasi Firebase");
-        }
+        // --- KONFIGURASI FIREBASE ANDA ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBI1hDtW8rxWOc1RRwPvMCLu7kn8o6frnU",
+            authDomain: "monja-6cc0e.firebaseapp.com",
+            projectId: "monja-6cc0e",
+            storageBucket: "monja-6cc0e.firebasestorage.app",
+            messagingSenderId: "705260868730",
+            appId: "1:705260868730:web:52782e62f123d632d357c3",
+            measurementId: "G-TZEWRD142C"
+        };
 
-        // Deklarasi Elemen DOM
+        const appId = 'pdam-surabaya-monitoring';
+
         const form = document.getElementById('permohonan-form');
         const btnSubmit = document.getElementById('btn-submit');
         const tableBody = document.getElementById('table-body');
@@ -274,25 +268,20 @@
         let db, auth;
         let globalData = [];
         let unsubscribe = null;
-        let editDocId = null; // Menyimpan ID dokumen yang sedang diedit
+        let editDocId = null;
 
-        // Fungsi untuk mengembalikan form ke kondisi awal (Mode Tambah Baru)
         function resetFormState() {
             editDocId = null;
             form.reset();
             
-            // Kembalikan teks header form
             document.querySelector('.bg-slate-50.border-b h3').innerText = 'Form Entry Permohonan';
             document.querySelector('.bg-slate-50.border-b p').innerText = 'Input data pelanggan baru.';
             
-            // Kembalikan tombol Submit
             btnSubmit.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg> Simpan Data`;
             
-            // Sembunyikan tombol Batal Edit
             const btnBatal = document.getElementById('btn-batal-edit');
             if (btnBatal) btnBatal.style.display = 'none';
 
-            // Reset Pipa ke 1 baris kosong awal
             pipaContainer.innerHTML = `
                 <div class="flex gap-2 items-start pipa-row">
                     <div class="w-1/2">
@@ -417,13 +406,7 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
 
-                // Autentikasi sebelum kueri
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                
+                await signInAnonymously(auth);
                 startRealtimeUpdates();
                 
                 connectionIndicator.className = "flex items-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200";
@@ -437,7 +420,6 @@
         }
 
         function startRealtimeUpdates() {
-            // Path Publik Wajib Sesuai Aturan Sistem
             const dbRef = collection(db, 'artifacts', appId, 'public', 'data', 'permohonan');
             
             unsubscribe = onSnapshot(dbRef, (snapshot) => {
@@ -446,7 +428,6 @@
                     globalData.push({ id: doc.id, ...doc.data() });
                 });
                 
-                // Sorting Manual di Memori
                 globalData.sort((a, b) => {
                     const tA = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
                     const tB = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0;
@@ -553,7 +534,6 @@
             btnSubmit.innerHTML = `Menyimpan...`;
 
             try {
-                // Kumpulkan data pipa dinamis
                 const pipaRows = document.querySelectorAll('.pipa-row');
                 const pipaData = [];
                 pipaRows.forEach(row => {
@@ -566,7 +546,6 @@
                 const ppStr = document.getElementById('pp').value.replace(/\./g, '');
                 const berkasInput = document.getElementById('berkas');
 
-                // Penanganan Nama File jika sedang edit dan tidak ada file baru yang diunggah
                 let namaBerkasFinal = '-';
                 if (berkasInput.files.length > 0) {
                     namaBerkasFinal = berkasInput.files[0].name;
@@ -587,38 +566,34 @@
                 };
 
                 if (editDocId) {
-                    // Update Mode (Edit Data)
                     payload.updatedAt = serverTimestamp();
                     const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'permohonan', editDocId);
                     await updateDoc(docRef, payload);
                     showToast("Data permohonan berhasil diperbarui!");
                 } else {
-                    // Create Mode (Tambah Data Baru)
                     payload.timestamp = serverTimestamp();
                     const dbRef = collection(db, 'artifacts', appId, 'public', 'data', 'permohonan');
                     await addDoc(dbRef, payload);
                     showToast("Data permohonan berhasil disimpan!");
                 }
                 
-                resetFormState(); // Reset form dan UI kembali seperti semula
+                resetFormState();
 
             } catch (err) {
                 console.error("Gagal simpan/update:", err);
                 showToast("Gagal memproses data.", "error");
-                btnSubmit.innerHTML = btnAsli; // Kembalikan ke text asli jika gagal
+                btnSubmit.innerHTML = btnAsli;
             } finally {
                 btnSubmit.disabled = false;
             }
         });
 
-        // FUNGSI UNTUK MENGEDIT DATA
         window.editData = (id) => {
             const data = globalData.find(d => d.id === id);
             if (!data) return;
 
             editDocId = id;
 
-            // Masukkan data dasar ke dalam form
             document.getElementById('nama').value = data.nama || '';
             document.getElementById('alamat').value = data.alamat || '';
             document.getElementById('rab').value = formatRupiah((data.rab || 0).toString());
@@ -626,10 +601,8 @@
             document.getElementById('jenis_pekerjaan').value = data.jenisPekerjaan || '';
             document.getElementById('status').value = data.status || 'Menunggu';
             
-            // Kosongkan file input, biarkan user unggah baru bila ingin ganti
             document.getElementById('berkas').value = ''; 
 
-            // Render ulang pipaData dari database ke field yang dinamis
             pipaContainer.innerHTML = '';
             if (data.pipaData && data.pipaData.length > 0) {
                 data.pipaData.forEach(p => {
@@ -660,12 +633,10 @@
             }
             updateHapusBttnStates();
 
-            // Ubah Header & Tombol Form ke Mode "Edit"
             document.querySelector('.bg-slate-50.border-b h3').innerText = 'Edit Data Permohonan';
             document.querySelector('.bg-slate-50.border-b p').innerText = 'Sedang memperbarui data. Biarkan berkas kosong jika tidak diganti.';
             btnSubmit.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Update Data`;
 
-            // Tambahkan Tombol Batal Edit
             let btnBatal = document.getElementById('btn-batal-edit');
             if (!btnBatal) {
                 btnBatal = document.createElement('button');
@@ -678,11 +649,9 @@
             }
             btnBatal.style.display = 'block';
 
-            // Gulir layar ke arah form
             document.querySelector('#permohonan-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
         };
 
-        // Global function untuk dipanggil dari atribut onclick di tabel
         window.updateStatus = async (id, stat) => {
             if(!stat) return;
             try {
@@ -693,7 +662,6 @@
         };
 
         window.hapusData = async (id) => {
-            // Modal konfirmasi khusus agar tidak menggunakan confirm() bawaan browser
             const bg = document.createElement('div');
             bg.className = 'fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4';
             bg.innerHTML = `
@@ -717,7 +685,6 @@
             };
         };
 
-        // Mulai eksekusi saat DOM siap
         window.addEventListener('DOMContentLoaded', () => {
             bindInitialHapusBtn();
             updateHapusBttnStates();
