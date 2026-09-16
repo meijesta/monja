@@ -742,7 +742,7 @@
                 let attachmentHtml = '<span class="text-slate-400 text-[11px] italic">Tanpa file</span>';
                 if(row.fileUrl && row.fileUrl.trim() !== '') {
                     const safeData = row.fileUrl.replace(/'/g, "\\'");
-                    attachmentHtml = `<button onclick="window.openAttachment('${safeData}')" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs border border-brand-200 transition-all shadow-sm cursor-pointer">ЁЯУО Lihat Attachment</button>`;
+                    attachmentHtml = `<button onclick="window.openAttachment('${safeData}')" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs border border-brand-200 transition-all shadow-sm cursor-pointer"> Lihat Attachment</button>`;
                 }
 
                 let ketHtml = row.keterangan ? `<div class="text-xs text-slate-600 bg-amber-50/50 p-2 rounded-lg border border-amber-100"><strong>Keterangan:</strong> ${row.keterangan}</div>` : '';
