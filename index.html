@@ -206,7 +206,7 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Upload Attachment (RAB / Denah)</label>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Upload Attachment (Otomatis Compress)</label>
                                     <input type="file" id="berkas_file" accept=".pdf,.jpg,.jpeg,.png" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-600 file:text-white hover:file:bg-brand-700 cursor-pointer bg-slate-50 border border-slate-200 rounded-xl">
                                 </div>
 
@@ -343,33 +343,57 @@
             </div>
 
             <!-- TAB 4: ADMIN PENGGUNA -->
-            <div id="tab-content-admin" class="hidden animate-fade-in max-w-3xl mx-auto">
+            <div id="tab-content-admin" class="hidden animate-fade-in max-w-4xl mx-auto space-y-6">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="bg-gradient-to-r from-purple-700 to-indigo-600 px-6 sm:px-8 py-5 sm:py-6 text-white">
-                        <h3 class="font-extrabold text-lg sm:text-xl">Kelola Pengguna Sistem</h3>
+                        <h3 class="font-extrabold text-lg sm:text-xl">Tambah Pengguna Baru</h3>
                         <p class="text-xs sm:text-sm text-purple-100 mt-1">Hanya Administrator yang dapat menambahkan akses pengguna baru.</p>
                     </div>
                     <form id="admin-add-user-form" class="p-6 sm:p-8 space-y-4 sm:space-y-5">
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Email Pengguna Baru</label>
-                            <input type="email" id="new-user-email" required class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Password Minimal 6 Karakter</label>
-                            <input type="password" id="new-user-password" required minlength="6" class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-sm">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Email Pengguna Baru</label>
+                                <input type="email" id="new-user-email" required class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Password Minimal 6 Karakter</label>
+                                <input type="password" id="new-user-password" required minlength="6" class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-sm">
+                            </div>
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Hak Akses (Role)</label>
                             <select id="new-user-role" required class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-sm">
                                 <option value="user">User Biasa (Input & Update)</option>
                                 <option value="viewer">Viewer / Monitor (Hanya Bisa Melihat)</option>
-                                <option value="admin">Administrator (Bisa Buat Akun & Full Akses)</option>
+                                <option value="admin">Administrator (Full Akses)</option>
                             </select>
                         </div>
                         <button type="submit" id="btn-add-user" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-purple-500/30 transition-all mt-4 text-sm">
                             Buat Akun Sekarang
                         </button>
                     </form>
+                </div>
+
+                <!-- MANAJEMEN PENGGUNA TERDAFTAR -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-50 border-b border-slate-200 px-6 sm:px-8 py-5">
+                        <h3 class="font-extrabold text-slate-800 text-lg">Daftar Pengguna Sistem</h3>
+                        <p class="text-xs text-slate-500">Kelola role, reset password, dan hapus akses user.</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-slate-100/50 text-slate-700 font-bold border-b border-slate-200 text-xs uppercase tracking-wider">
+                                    <th class="px-6 py-4">Email</th>
+                                    <th class="px-6 py-4">Role Akses</th>
+                                    <th class="px-6 py-4 text-right">Aksi Kelola</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-users-list" class="divide-y divide-slate-100">
+                                <!-- Data User Render Disini -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -429,7 +453,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // IMPORT sendPasswordResetEmail DITAMBAHKAN
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getDatabase, ref as dbRef, set, push, onValue, remove, update, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         const firebaseConfig = {
@@ -446,7 +471,7 @@
         let app, db, auth;
         let globalData = [], filteredData = [];
         let editDocId = null;
-        let currentUser = null, currentUserRole = 'user';
+        let currentUser = null, currentUserRole = 'viewer';
         
         // Setup instances variable for chart.js
         let chartPekerjaanInstance = null;
@@ -454,7 +479,6 @@
         let chartBiayaInstance = null;
         let chartPipaInstance = null;
 
-        // DI UPDATE: DATA 31 KECAMATAN LENGKAP & KELURAHAN
         const wilayahSurabaya = {
             "Asemrowo": ["Asemrowo", "Genting Kalianak", "Tambak Sarioso"],
             "Benowo": ["Kandangan", "Romokalisari", "Sememi", "Tambak Osowilangun"],
@@ -574,6 +598,50 @@
             setTimeout(() => { toast.classList.replace('toast-enter', 'toast-exit'); setTimeout(() => toast.remove(), 300); }, 3000);
         };
 
+        // FUNGSI AUTO COMPRESS GAMBAR
+        const compressImage = (file) => {
+            return new Promise((resolve, reject) => {
+                // Jika bukan gambar (misal PDF), baca secara normal
+                if (!file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = error => reject(error);
+                    reader.readAsDataURL(file);
+                    return;
+                }
+
+                // Jika berupa Gambar, Lakukan Kompresi Canvas
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 1200;
+                        const MAX_HEIGHT = 1200;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                        } else {
+                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                        }
+                        
+                        canvas.width = width; 
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Konversi ke JPEG dengan kualitas 70% untuk memperkecil ukuran
+                        resolve(canvas.toDataURL('image/jpeg', 0.7)); 
+                    };
+                    img.src = event.target.result;
+                };
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        };
+
         async function initApp() {
             initWilayah();
             app = initializeApp(firebaseConfig);
@@ -590,10 +658,11 @@
                         if (roleSnap.exists()) {
                             currentUserRole = roleSnap.val().role;
                         } else {
-                            currentUserRole = 'admin'; 
-                            await set(dbRef(db, `users_roles/${user.uid}`), { role: 'admin', email: user.email });
+                            // Perbaikan Logika: Jika tidak ada role tercatat, set default sebagai viewer
+                            currentUserRole = 'viewer'; 
+                            await set(dbRef(db, `users_roles/${user.uid}`), { role: 'viewer', email: user.email, createdAt: Date.now() });
                         }
-                    } catch(e) { currentUserRole = 'user'; }
+                    } catch(e) { currentUserRole = 'viewer'; }
 
                     document.getElementById('user-role-display').innerText = `Role: ${currentUserRole.toUpperCase()}`;
                     
@@ -610,6 +679,7 @@
 
                     if(currentUserRole === 'admin') {
                         document.getElementById('tab-btn-admin').classList.remove('hidden');
+                        loadAdminUsers(); // Muat data pengguna saat login sebagai admin
                     } else {
                         document.getElementById('tab-btn-admin').classList.add('hidden');
                     }
@@ -663,7 +733,7 @@
                 }
                 handleSearch(); 
                 renderSummary();
-                initChartFilters(); // Update Pilihan Dropdown Filter Tiap Ada Data Masuk
+                initChartFilters();
                 if(document.getElementById('tab-content-rekap').style.display === 'block') renderCharts();
                 if(document.getElementById('tab-content-rekapdetail').style.display === 'block') initRekapDetail();
             });
@@ -816,7 +886,6 @@
             }).join('');
         }
 
-        // LOGIKA TAB REKAP DETAIL
         function initRekapDetail() {
             const selectTahun = document.getElementById('filter-rekap-tahun');
             const selectProses = document.getElementById('filter-rekap-proses');
@@ -909,15 +978,6 @@
             }).join('');
         };
 
-        const readFileAsDataURL = (file) => {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = (error) => reject(error);
-                reader.readAsDataURL(file);
-            });
-        };
-
         form.onsubmit = async (e) => {
             e.preventDefault();
             if (currentUserRole === 'viewer') return showToast("Akses ditolak! Anda hanya memiliki izin monitor.", "error");
@@ -940,9 +1000,10 @@
                 }
 
                 if (fileInput.files && fileInput.files[0]) {
-                    btn.innerText = 'Memproses Berkas...';
+                    btn.innerText = 'Mengompres Berkas...';
                     const file = fileInput.files[0];
-                    fileUrl = await readFileAsDataURL(file);
+                    // MEMANGGIL FUNGSI COMPRESS
+                    fileUrl = await compressImage(file);
                 }
 
                 btn.innerText = 'Menyimpan ke Database...';
@@ -1104,7 +1165,6 @@
                 if(d.kecamatan) kecSet.add(d.kecamatan);
             });
 
-            // Simpan status pilihan saat ini
             const currY = filterTahun.value;
             const currK = filterKecamatan.value;
 
@@ -1123,7 +1183,6 @@
             const selTahun = document.getElementById('chart-filter-tahun').value;
             const selKecamatan = document.getElementById('chart-filter-kecamatan').value;
 
-            // Filter data yang akan ditampilkan pada grafik
             let dataForChart = globalData.filter(d => {
                 let tgl = d.history?.['Pendaftaran'] || '';
                 let y = tgl ? tgl.split('-')[0] : new Date().getFullYear().toString();
@@ -1132,7 +1191,6 @@
                 return true;
             });
 
-            // Agregasi Data
             const yearsAgg = {};
             const statusAgg = {};
             const pipaAgg = { p100: 0, p150: 0, p200: 0 };
@@ -1165,7 +1223,6 @@
 
             Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
 
-            // 1. CHART PEKERJAAN (BAR)
             if(chartPekerjaanInstance) chartPekerjaanInstance.destroy();
             chartPekerjaanInstance = new Chart(document.getElementById('chartPekerjaan').getContext('2d'), {
                 type: 'bar',
@@ -1179,7 +1236,6 @@
                 options: { responsive: true, maintainAspectRatio: false }
             });
 
-            // 2. CHART STATUS (DOUGHNUT)
             const stLabels = Object.keys(statusAgg);
             const stData = Object.values(statusAgg);
             const stColors = stLabels.map(st => {
@@ -1202,7 +1258,6 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
             });
 
-            // 3. CHART BIAYA (LINE)
             if(chartBiayaInstance) chartBiayaInstance.destroy();
             chartBiayaInstance = new Chart(document.getElementById('chartBiaya').getContext('2d'), {
                 type: 'line',
@@ -1229,7 +1284,6 @@
                 }
             });
 
-            // 4. CHART PIPA (BAR)
             if(chartPipaInstance) chartPipaInstance.destroy();
             chartPipaInstance = new Chart(document.getElementById('chartPipa').getContext('2d'), {
                 type: 'bar',
@@ -1244,6 +1298,77 @@
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
+        };
+
+        // FUNGSI ADMIN: LOAD DATA PENGGUNA
+        function loadAdminUsers() {
+            if (currentUserRole !== 'admin') return;
+            const usersRef = dbRef(db, 'users_roles');
+            onValue(usersRef, (snapshot) => {
+                const container = document.getElementById('admin-users-list');
+                if(!snapshot.exists()) { 
+                    container.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-slate-500">Tidak ada data pengguna</td></tr>'; 
+                    return; 
+                }
+                
+                let html = '';
+                snapshot.forEach(child => {
+                    const uid = child.key;
+                    const data = child.val();
+                    
+                    html += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-6 py-4 font-bold text-slate-800">${data.email || 'Tidak Diketahui'}</td>
+                        <td class="px-6 py-4">
+                            <select onchange="window.updateUserRole('${uid}', this.value)" class="bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer">
+                                <option value="user" ${data.role==='user'?'selected':''}>User Biasa</option>
+                                <option value="viewer" ${data.role==='viewer'?'selected':''}>Viewer (Monitor)</option>
+                                <option value="admin" ${data.role==='admin'?'selected':''}>Admin</option>
+                            </select>
+                        </td>
+                        <td class="px-6 py-4 text-right space-x-2">
+                            <button onclick="window.resetUserPassword('${data.email}')" class="text-xs bg-sky-50 text-sky-600 px-3 py-1.5 rounded-lg font-bold border border-sky-100 hover:bg-sky-100 transition-colors">Reset Password</button>
+                            <button onclick="window.deleteUserAccess('${uid}', '${data.email}')" class="text-xs bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg font-bold border border-rose-100 hover:bg-rose-100 transition-colors">Hapus Akses</button>
+                        </td>
+                    </tr>
+                    `;
+                });
+                container.innerHTML = html;
+            });
+        }
+
+        // FUNGSI ADMIN: UPDATE ROLE
+        window.updateUserRole = async (uid, newRole) => {
+            if(currentUserRole !== 'admin') return;
+            try {
+                await update(dbRef(db, `users_roles/${uid}`), { role: newRole });
+                showToast("Role pengguna berhasil diperbarui!");
+            } catch(e) { showToast("Gagal update role", "error"); }
+        };
+
+        // FUNGSI ADMIN: RESET PASSWORD EMAIL
+        window.resetUserPassword = async (email) => {
+            if(currentUserRole !== 'admin') return;
+            if(confirm(`Kirim link reset password ke email: ${email} ?`)) {
+                try {
+                    await sendPasswordResetEmail(auth, email);
+                    showToast(`Link reset password telah dikirim ke ${email}`);
+                } catch(e) { 
+                    console.error(e);
+                    showToast("Gagal kirim link reset, mungkin akun belum terdaftar di Firebase Auth.", "error"); 
+                }
+            }
+        };
+
+        // FUNGSI ADMIN: HAPUS AKSES (Delete dari DB roles)
+        window.deleteUserAccess = async (uid, email) => {
+            if(currentUserRole !== 'admin') return;
+            if(confirm(`Anda yakin ingin menghapus HAK AKSES untuk ${email}? \n\nCatatan: Ini akan mencabut role mereka di sistem.`)) {
+                try {
+                    await remove(dbRef(db, `users_roles/${uid}`));
+                    showToast(`Hak akses ${email} berhasil dihapus.`);
+                } catch(e) { showToast("Gagal menghapus akses", "error"); }
+            }
         };
 
         document.getElementById('admin-add-user-form').onsubmit = async (e) => {
