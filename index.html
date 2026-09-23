@@ -419,6 +419,8 @@
                         <option value="Approval Manajer">Approval Manajer</option>
                         <option value="Approval Manajer Senior">Approval Manajer Senior</option>
                         <option value="Approval Direktur Pelayanan">Approval Direktur Pelayanan</option>
+                        <!-- MENAMBAHKAN STATUS KIRIM KAS DI SINI -->
+                        <option value="Kirim Kas">Kirim Kas</option>
                         <option value="Lunas / PSTJ">Lunas / PSTJ</option>
                         <option value="Pemasangan">Pemasangan</option>
                     </select>
@@ -516,6 +518,7 @@
         const form = document.getElementById('permohonan-form');
         const searchInput = document.getElementById('search-input');
         
+        // MENAMBAHKAN WARNA LABEL UNTUK KIRIM KAS
         const statusColors = {
             'Pendaftaran': 'bg-slate-100 text-slate-700 border-slate-300',
             'Survey': 'bg-sky-100 text-sky-700 border-sky-300',
@@ -524,6 +527,7 @@
             'Approval Manajer': 'bg-purple-100 text-purple-700 border-purple-300',
             'Approval Manajer Senior': 'bg-purple-100 text-purple-700 border-purple-300',
             'Approval Direktur Pelayanan': 'bg-pink-100 text-pink-700 border-pink-300',
+            'Kirim Kas': 'bg-teal-100 text-teal-700 border-teal-300', 
             'Lunas / PSTJ': 'bg-amber-100 text-amber-700 border-amber-300',
             'Pemasangan': 'bg-emerald-100 text-emerald-700 border-emerald-300'
         };
@@ -1252,11 +1256,14 @@
 
             const stLabels = Object.keys(statusAgg);
             const stData = Object.values(statusAgg);
+            
+            // MENAMBAHKAN WARNA GRAFIK DOUGHNUT UNTUK STATUS KIRIM KAS
             const stColors = stLabels.map(st => {
                 if(st==='Pendaftaran') return '#cbd5e1';
                 if(st==='Survey') return '#7dd3fc';
                 if(st==='RAB') return '#a5b4fc';
                 if(st.includes('Approval')) return '#d8b4fe';
+                if(st==='Kirim Kas') return '#5eead4'; 
                 if(st==='Lunas / PSTJ') return '#fcd34d';
                 if(st==='Pemasangan') return '#6ee7b7';
                 return '#94a3b8';
