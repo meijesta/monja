@@ -206,7 +206,7 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Upload Attachment (Otomatis Compress)</label>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Upload Attachment (Max 2MB PDF / Otomatis Compress Gambar)</label>
                                     <input type="file" id="berkas_file" accept=".pdf,.jpg,.jpeg,.png" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-600 file:text-white hover:file:bg-brand-700 cursor-pointer bg-slate-50 border border-slate-200 rounded-xl">
                                 </div>
 
@@ -223,7 +223,7 @@
                             <div class="bg-slate-50/80 border-b border-slate-100 px-5 sm:px-6 py-3.5 sm:py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                                 <div>
                                     <h3 class="font-bold text-slate-800 text-base sm:text-lg">Monitoring Real-time</h3>
-                                    <p class="text-[11px] text-slate-400">Data masuk dan pemantauan progres</p>
+                                    <p class="text-[11px] text-slate-400">Data terbaru (Maksimal 50 data ditampilkan di layar awal)</p>
                                 </div>
                                 
                                 <!-- FITUR PENCARIAN -->
@@ -419,7 +419,6 @@
                         <option value="Approval Manajer">Approval Manajer</option>
                         <option value="Approval Manajer Senior">Approval Manajer Senior</option>
                         <option value="Approval Direktur Pelayanan">Approval Direktur Pelayanan</option>
-                        <option value="Kirim Kas">Kirim Kas</option>
                         <option value="Lunas / PSTJ">Lunas / PSTJ</option>
                         <option value="Pemasangan">Pemasangan</option>
                     </select>
@@ -525,7 +524,6 @@
             'Approval Manajer': 'bg-purple-100 text-purple-700 border-purple-300',
             'Approval Manajer Senior': 'bg-purple-100 text-purple-700 border-purple-300',
             'Approval Direktur Pelayanan': 'bg-pink-100 text-pink-700 border-pink-300',
-            'Kirim Kas': 'bg-pink-100 text-pink-700 border-pink-300',
             'Lunas / PSTJ': 'bg-amber-100 text-amber-700 border-amber-300',
             'Pemasangan': 'bg-emerald-100 text-emerald-700 border-emerald-300'
         };
@@ -660,7 +658,6 @@
                         if (roleSnap.exists()) {
                             currentUserRole = roleSnap.val().role;
                         } else {
-                            // Perbaikan Logika: Jika tidak ada role tercatat, set default sebagai viewer
                             currentUserRole = 'viewer'; 
                             await set(dbRef(db, `users_roles/${user.uid}`), { role: 'viewer', email: user.email, createdAt: Date.now() });
                         }
@@ -776,8 +773,12 @@
             document.getElementById('stats-container').innerHTML = html;
         }
 
-        window.openAttachment = (base64Data) => {
-            if (!base64Data) return showToast("Tidak ada file lampiran.", "error");
+        // OPTIMASI: Buka Attachment dari Database Memory via ID (Mencegah Lag DOM)
+        window.openAttachment = (id) => {
+            const row = globalData.find(d => d.id === id);
+            if (!row || !row.fileUrl) return showToast("Tidak ada file lampiran.", "error");
+            
+            const base64Data = row.fileUrl;
             try {
                 const arr = base64Data.split(',');
                 const mime = arr[0].match(/:(.*?);/)[1];
@@ -793,6 +794,7 @@
             }
         };
 
+        // OPTIMASI: Pembatasan Tampilan Awal (Lazy Look)
         function renderCards() {
             const container = document.getElementById('card-list-container');
             const empty = document.getElementById('empty-state');
@@ -801,7 +803,10 @@
             
             const idr = (num) => 'Rp' + (num || 0).toLocaleString('id-ID');
 
-            container.innerHTML = filteredData.map(row => {
+            // Balik urutan agar data terbaru di atas, lalu batasi render maksimal 50 item saja di layar
+            const dataToRender = filteredData.slice().reverse().slice(0, 50);
+
+            container.innerHTML = dataToRender.map(row => {
                 const p100 = row.pipa100 || 0;
                 const p150 = row.pipa150 || 0;
                 const p200 = row.pipa200 || 0;
@@ -811,10 +816,10 @@
                 const bbnBdg = row.jenisPekerjaan === 'Beban Pelanggan' ? 'text-amber-700 bg-amber-50 border-amber-300' : 'text-sky-700 bg-sky-50 border-sky-300';
                 const wilayahStr = [row.kelurahan, row.kecamatan].filter(Boolean).join(', ');
 
+                // Attachment HTML: Hanya kirim ID ke function, BUKAN teks file jutaan karakter
                 let attachmentHtml = '<span class="text-slate-400 text-[11px] italic">Tanpa file</span>';
                 if(row.fileUrl && row.fileUrl.trim() !== '') {
-                    const safeData = row.fileUrl.replace(/'/g, "\\'");
-                    attachmentHtml = `<button onclick="window.openAttachment('${safeData}')" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs border border-brand-200 transition-all shadow-sm cursor-pointer"> Lihat Attachment</button>`;
+                    attachmentHtml = `<button onclick="window.openAttachment('${row.id}')" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs border border-brand-200 transition-all shadow-sm cursor-pointer">Lihat Attachment</button>`;
                 }
 
                 let ketHtml = row.keterangan ? `<div class="text-xs text-slate-600 bg-amber-50/50 p-2 rounded-lg border border-amber-100"><strong>Keterangan:</strong> ${row.keterangan}</div>` : '';
@@ -1001,10 +1006,17 @@
                     fileUrl = existing?.fileUrl || '';
                 }
 
+                // OPTIMASI DAN VALIDASI FILE: Max 2MB untuk PDF
                 if (fileInput.files && fileInput.files[0]) {
-                    btn.innerText = 'Mengompres Berkas...';
                     const file = fileInput.files[0];
-                    // MEMANGGIL FUNGSI COMPRESS
+                    
+                    if (file.type === 'application/pdf' && file.size > 2 * 1024 * 1024) { // Cek 2 MB
+                        btn.disabled = false; 
+                        btn.innerText = 'Simpan Data Permohonan';
+                        return showToast("Gagal: Ukuran PDF maksimal 2MB. Silakan kompres manual terlebih dahulu.", "error");
+                    }
+
+                    btn.innerText = 'Memproses Berkas...';
                     fileUrl = await compressImage(file);
                 }
 
@@ -1245,7 +1257,6 @@
                 if(st==='Survey') return '#7dd3fc';
                 if(st==='RAB') return '#a5b4fc';
                 if(st.includes('Approval')) return '#d8b4fe';
-                if(st==='Kirim Kas') return '#fcd34d';
                 if(st==='Lunas / PSTJ') return '#fcd34d';
                 if(st==='Pemasangan') return '#6ee7b7';
                 return '#94a3b8';
